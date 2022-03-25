@@ -1,0 +1,5 @@
+MAJOR = 1
+MINOR = 0
+PATCH = 0
+ALPHA = ".dev1"
+VERSION = f"{MAJOR}.{MINOR}.{PATCH}{ALPHA}"
