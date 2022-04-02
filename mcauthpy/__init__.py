@@ -1,3 +1,4 @@
-from .mcauth import *
+from .auth import *
+from .client import *
 
 __all__ = []
