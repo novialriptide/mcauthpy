@@ -79,21 +79,10 @@ class Client:
     def _read(self, extra_varint: bool = False):
         packet_length = self._unpack_varint()
         packet_id = self._unpack_varint()
-        byte = b""
 
-        if extra_varint:
-            if packet_id > packet_length:
-                self._unpack_varint()
+        data = bytes(bytearray(self.connection.recv(packet_length))[2:packet_length+2])
 
-            extra_length = self._unpack_varint()
-
-            while len(byte) < extra_length:
-                byte += self.connection.recv(extra_length)
-
-        else:
-            byte = self.connection.recv(packet_length)
-
-        return byte
+        return data
     
     def get_status(self):
         """Gets server status
@@ -102,7 +91,7 @@ class Client:
         self._send_packet(b"\x00", b"\x00", self.server_ip, self.server_port, b"\x01")
         self._send_packet(b"\x00") # request packet
 
-        data = self._read(extra_varint=True)
+        data = self._read()
         response = json.loads(data.decode("utf8"))
 
         return response
@@ -116,12 +105,14 @@ class Client:
         self._send_packet(b"\x00", self._pack_varint(self.protocol_version), self.server_ip, self.server_port, b"\x02")
         
         # Login packet
-        self._send_packet(b"\x00", "Novial")
+        self._send_packet(b"\x00", username)
+        public_key = self._read()
+        print(public_key)
+        public_key = RSA.generate(1024).publickey().export_key("DER")
+        print(public_key)
 
         shared_secret = os.urandom(16)
-
-        key = RSA.generate(1024)
-        public_key = key.publickey().export_key("DER")
+        
 
         cipher = load_der_public_key(public_key, default_backend())
         encrypted_secret = cipher.encrypt(shared_secret, PKCS1v15())
@@ -149,16 +140,16 @@ class Client:
         response_get = requests.get(f"https://sessionserver.mojang.com/session/minecraft/hasJoined?username={username}&serverId={generated_hash}&ip={socket.gethostbyname(socket.gethostname())}")
         data = response_get.json()
         
-        clean_id = uuid.UUID(hex=data["id"])
         
         # Encryption Request Packet
-        self._send_packet(b"\x01", generated_hash, len(public_key), public_key, len(shared_secret), shared_secret)
+        #self._send_packet(b"\x01", generated_hash, len(public_key), public_key, len(shared_secret), shared_secret)
         
         # Encryption Response Packet
         self._send_packet(b"\x01", len(encrypted_secret), encrypted_secret, len(encryted_token), encryted_token)
         
         # Login Success Packet
-        self._send_packet(b"\x02", str(clean_id), data["name"])
+        #clean_id = uuid.UUID(hex=data["id"])
+        #self._send_packet(b"\x02", str(clean_id), data["name"])
         
         return data
 
