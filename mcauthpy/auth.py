@@ -198,13 +198,12 @@ def get_mc_profile(mc_access_token):
 
     return response.json()
 
-
-def authenticate(
+def get_mc_access_token(
     client_id: str,
     client_secret: str,
     auth_code: str,
     redirect_uri: str = "https://login.live.com/oauth20_desktop.srf",
-) -> dict:
+) -> str:
     ms_secret = get_microsoft_secret(
         client_id,
         client_secret,
@@ -220,4 +219,7 @@ def authenticate(
     xbox_secret2 = get_xbox_secret2(xbl_token)
     xsts_token = xbox_secret2["Token"]
     mc_access_token = get_minecraft(user_hash, xsts_token)["access_token"]
+    return mc_access_token
+
+def authenticate(mc_access_token) -> dict:
     return get_mc_profile(mc_access_token)

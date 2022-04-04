@@ -2,18 +2,33 @@ import socket
 import json
 import time
 import struct
+import hashlib
+import os
+import requests
+import uuid
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_v1_5
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.asymmetric.padding import PKCS1v15
+from cryptography.hazmat.primitives.serialization import load_der_public_key
 
 class Client:
-    def __init__(self, server_ip: str, server_port: int = 25565):
+    def __init__(self, server_ip: str, server_port: int = 25565, protocol_version: int = 758):
         self.server_ip = server_ip
         self.server_port = server_port
+        self.protocol_version = protocol_version
         self._timeout = 5
+        self.connection = None
     
-    def _unpack_varint(self, connection):
+    def _connect(self):
+        self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.connection.settimeout(self._timeout)
+        self.connection.connect((self.server_ip, self.server_port))
+    
+    def _unpack_varint(self):
         data = 0
         for x in range(5):
-            ordinal = connection.recv(1)
-            print(ordinal)
+            ordinal = self.connection.recv(1)
             
             if len(ordinal) == 0:
                 break
@@ -53,54 +68,107 @@ class Client:
         else:
             return data
     
-    def _send_data(self, connection, *args):
+    def _send_packet(self, *args):
         data = b""
         
         for arg in args:
             data += self._pack_data(arg)
-        
-        connection.send(self._pack_varint(len(data)) + data)
+
+        self.connection.send(self._pack_varint(len(data)) + data) # send noncompressed data
     
-    def _read_fully(self, connection, extra_varint: bool = False):
-        packet_length = self._unpack_varint(connection)
-        packet_id = self._unpack_varint(connection)
-        byte = b''
+    def _read(self, extra_varint: bool = False):
+        packet_length = self._unpack_varint()
+        packet_id = self._unpack_varint()
+        byte = b""
 
         if extra_varint:
-            # Packet contained netty header offset for this
             if packet_id > packet_length:
-                self._unpack_varint(connection)
+                self._unpack_varint()
 
-            extra_length = self._unpack_varint(connection)
+            extra_length = self._unpack_varint()
 
             while len(byte) < extra_length:
-                byte += connection.recv(extra_length)
+                byte += self.connection.recv(extra_length)
 
         else:
-            byte = connection.recv(packet_length)
+            byte = self.connection.recv(packet_length)
 
         return byte
-
     
     def get_status(self):
-        """ Get the status response """
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as connection:
-            connection.settimeout(self._timeout)
-            connection.connect((self.server_ip, self.server_port))
+        """Gets server status
+        """
+        self._connect()
+        self._send_packet(b"\x00", b"\x00", self.server_ip, self.server_port, b"\x01")
+        self._send_packet(b"\x00") # request packet
 
-            # Send handshake + status request
-            self._send_data(connection, b'\x00\x00', self.server_ip, self.server_port, b'\x01')
-            self._send_data(connection, b'\x00')
-
-            # Read response, offset for string length
-            data = self._read_fully(connection, extra_varint=True)
-
-            # Send and read unix time
-            self._send_data(connection, b'\x01', time.time() * 1000)
-            unix = self._read_fully(connection)
-
-        # Load json and return
-        response = json.loads(data.decode('utf8'))
-        response['ping'] = int(time.time() * 1000) - struct.unpack('Q', unix)[0]
+        data = self._read(extra_varint=True)
+        response = json.loads(data.decode("utf8"))
 
         return response
+    
+    def login(self, username, access_token, player_uuid):
+        """Initiate login with server.
+        """
+        self._connect()
+        
+        # Handshake packet
+        self._send_packet(b"\x00", self._pack_varint(self.protocol_version), self.server_ip, self.server_port, b"\x02")
+        
+        # Login packet
+        self._send_packet(b"\x00", "Novial")
+
+        shared_secret = os.urandom(16)
+
+        key = RSA.generate(1024)
+        public_key = key.publickey().export_key("DER")
+
+        cipher = load_der_public_key(public_key, default_backend())
+        encrypted_secret = cipher.encrypt(shared_secret, PKCS1v15())
+        encryted_token = cipher.encrypt(shared_secret, PKCS1v15())
+
+        generated_hash = hashlib.sha1()
+        generated_hash.update(b"")
+        generated_hash.update(shared_secret)
+        generated_hash.update(public_key)
+        generated_hash = generated_hash.hexdigest()
+        
+        response_post = requests.post(
+            "https://sessionserver.mojang.com/session/minecraft/join",
+            headers = {"Content-Type": "application/json"},
+            json={
+                "accessToken": access_token,
+                "selectedProfile": player_uuid,
+                "serverId": generated_hash
+            }
+        )
+        
+        if response_post.status_code != 204:
+            raise Exception(f"Status code is not 204: ({response_post.status_code})")
+
+        response_get = requests.get(f"https://sessionserver.mojang.com/session/minecraft/hasJoined?username={username}&serverId={generated_hash}&ip={socket.gethostbyname(socket.gethostname())}")
+        data = response_get.json()
+        
+        clean_id = uuid.UUID(hex=data["id"])
+        
+        # Encryption Request Packet
+        self._send_packet(b"\x01", generated_hash, len(public_key), public_key, len(shared_secret), shared_secret)
+        
+        # Encryption Response Packet
+        self._send_packet(b"\x01", len(encrypted_secret), encrypted_secret, len(encryted_token), encryted_token)
+        
+        # Login Success Packet
+        self._send_packet(b"\x02", str(clean_id), data["name"])
+        
+        return data
+
+    def get_ping(self):
+        """Get server ping.
+        
+        Warning: Can only be used right after get_status()
+        
+        """
+        self._send_packet(b"\x01", time.time() * 1000)
+        unix = self._read()
+        
+        return int(time.time() * 1000) - struct.unpack("Q", unix)[0]
