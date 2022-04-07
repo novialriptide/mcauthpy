@@ -1,11 +1,10 @@
-import struct
 import unittest
 import mcauthpy
 
 
 class DataTypesTest(unittest.TestCase):
     def test_pack_varint(self):
-        c = mcauthpy.Client(None, None, None)
+        c = mcauthpy.Client()
 
         self.assertEqual(c.pack_varint(0), b"\x00")
         self.assertEqual(c.pack_varint(1), b"\x01")
@@ -20,7 +19,7 @@ class DataTypesTest(unittest.TestCase):
         # self.assertEqual(c.pack_varint(-2147483648), b"\x80\x80\x80\x80\x08")
 
     def test_pack_varlong(self):
-        c = mcauthpy.Client(None, None, None)
+        c = mcauthpy.Client()
 
         self.assertEqual(c.pack_varlong(0), b"\x00")
         self.assertEqual(c.pack_varlong(1), b"\x01")
