@@ -52,6 +52,16 @@ class Client:
                 raise RuntimeError("VarLong is too big")
 
     def pack_varint(self, value: int) -> bytes:
+        """Converts a Python int to a Minecraft VarInt. Does not support
+        negatives.
+        
+        Parameters:
+            value (int): Data to convert
+        
+        Returns (bytes):
+            Data in Minecraft VarInt format.
+        
+        """
         data = b""
         
         while True:
@@ -62,6 +72,19 @@ class Client:
             data += struct.pack("B", (value & SEGMENT_BITS) | CONTINUE_BIT)
             
             value >>= 7
+
+    def pack_varlong(self, value: int) -> bytes:
+        """Converts a Python int to a Minecraft VarLong. This function
+        directly calls `pack_varint()`. Does not support negatives.
+        
+        Parameters:
+            value (int): Data to convert
+        
+        Returns (bytes):
+            Data in Minecraft VarLong format.
+        
+        """
+        return self.pack_varint(value)
     
     def pack_unsigned_short(self, value) -> bytes:
         return struct.pack("H", value)
