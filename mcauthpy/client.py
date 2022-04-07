@@ -83,6 +83,6 @@ class Client:
     def read(self) -> bytes:
         packet_length = self.unpack_varint()
         packet_id = self.unpack_varint()
-        print(packet_length, packet_id)
+        data_length = self.unpack_varint()
         
-        return self.connection.recv(packet_length)
+        return self.connection.recv(data_length)
