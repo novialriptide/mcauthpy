@@ -17,8 +17,8 @@ Here's an example of sending a [Handshake](https://wiki.vg/Protocol#Handshake) p
 ```python
 import mcauthpy
 
-client = mcauthpy.Client("localhost")
-client.connect()
+client = mcauthpy.Client()
+client.connect("localhost")
 client.send_packet( # Send Handshake Packet
     0x00, # Packet ID
     c.pack_varint(758), # Protocol Version
