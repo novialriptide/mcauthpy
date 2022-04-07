@@ -168,7 +168,7 @@ class Client:
         """Reads and unpacks the packet sent from the server.
 
         Returns:
-            str: The unpacked data.
+            bytes: The unpacked data.
 
         """
         packet_length = self.unpack_varint()
