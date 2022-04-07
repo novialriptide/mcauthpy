@@ -51,7 +51,7 @@ class Client:
             if position >= 64:
                 raise RuntimeError("VarLong is too big")
 
-    def pack_varint(self, value) -> bytes:
+    def pack_varint(self, value: int) -> bytes:
         data = b""
         
         while True:
@@ -62,6 +62,9 @@ class Client:
             data += struct.pack("B", (value & SEGMENT_BITS) | CONTINUE_BIT)
             
             value >>= 7
+    
+    def pack_unsigned_short(self, value) -> bytes:
+        return struct.pack("H", value)
     
     def pack_string(self, value: str) -> bytes:
         value = value.encode("utf-8")
@@ -74,12 +77,12 @@ class Client:
         
         for field in fields:
             data += field
-            print(field)
-        
+            
         self.connection.send(self.pack_varint(len(data)) + data)
     
     def read(self) -> bytes:
         packet_length = self.unpack_varint()
         packet_id = self.unpack_varint()
+        print(packet_length, packet_id)
         
         return self.connection.recv(packet_length)
