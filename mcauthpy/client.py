@@ -34,6 +34,9 @@ class Client:
         self.connection.settimeout(self._timeout)
         self.connection.connect((self.server_ip, self.server_port))
 
+    def minecraft_sha1_hash(self, sha1_hash):
+        return format(int.from_bytes(sha1_hash.digest(), byteorder="big", signed=True), "x")
+
     def unpack_varint(self) -> int:
         """Unpacks a VarInt from socket connection.
 
