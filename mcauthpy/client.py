@@ -80,6 +80,18 @@ class Client:
             if position >= 64:
                 raise RuntimeError("VarLong is too big")
 
+    def unpack_string(self, str_length: int) -> str:
+        """Unpacks a string from socket connection.
+        
+        Parameters:
+            str_length (int): The string's length.
+        
+        Returns:
+            str: The unpacked string.
+
+        """
+        return self.connection.recv(1 + (str_length * 4) + 3)
+
     def pack_varint(self, value: int) -> bytes:
         """Converts a Python int to a Minecraft: Java Edition VarInt. Does not
         support negatives.
@@ -164,3 +176,12 @@ class Client:
         data_length = self.unpack_varint()
 
         return self.connection.recv(data_length)
+
+    def raw_read(self) -> bytes:
+        """Reads data sent from the server.
+        
+        Returns:
+            bytes: The raw data.
+        
+        """
+        return self.connection.recv(1024)
