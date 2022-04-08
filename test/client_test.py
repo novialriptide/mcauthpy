@@ -43,6 +43,8 @@ class DataTypesTest(unittest.TestCase):
         self.assertEqual(c.minecraft_sha1_hash(hashlib.sha1(b"jeb_")), "-7c9d5b0044c130109a5d7b5fb5c317c02b4e28c1")
         self.assertEqual(c.minecraft_sha1_hash(hashlib.sha1(b"simon")), "88e16a1019277b15d58faf0541e11910eb756f6")
 
+    def test_pack_boolean(self):
+        
 
 if __name__ == "__main__":
     unittest.main()
