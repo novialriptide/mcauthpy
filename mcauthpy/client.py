@@ -150,12 +150,15 @@ class Client:
         value = value.encode("utf-8")
         return self.pack_varint(len(value)) + value
 
-    def send_packet(self, packet_id: int, *fields: Tuple[bytes]) -> None:
+    def send_packet(self, packet_id: int, *fields: Tuple[bytes]) -> bytes:
         """Sends a packet to the connected server.
 
         Parameters:
             packet_id (int): The packet's id in hexadecimal format.
             *fields (Tuple[bytes]): The packed data to send to the server.
+
+        Returns:
+            bytes: The packet that is sent to the server.
 
         """
         data = b""
@@ -165,7 +168,9 @@ class Client:
         for field in fields:
             data += field
 
-        self.connection.send(self.pack_varint(len(data)) + data)
+        out = self.pack_varint(len(data)) + data
+        self.connection.send(out)
+        return out
 
     def read(self) -> bytes:
         """Reads and unpacks the packet sent from the server.
