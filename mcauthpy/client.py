@@ -95,12 +95,36 @@ class Client:
         """
         return self.connection.recv(1 + (str_length * 4) + 3)
 
+    def unpack_boolean(self) -> bool:
+        """Unpacks a boolean from socket connection.
+        
+        Returns:
+            bool: The unpacked boolean,
+
+        """
+        return struct.unpack("?", self.connection.recv(1))[0]
+
+    def pack_boolean(self, value: bool) -> bytes:
+        """Converts a boolean to a boolean in bytes format.
+
+        Parameters:
+            value (bool): Data to convert.
+
+        Returns:
+            bytes: Data in bytes format.
+
+        """
+        if value:
+            return b"\x01"
+        else:
+            return b"\x00"
+
     def pack_varint(self, value: int) -> bytes:
         """Converts a Python int to a Minecraft: Java Edition VarInt. Does not
         support negatives.
 
         Parameters:
-            value (int): Data to convert
+            value (int): Data to convert.
 
         Returns:
             bytes: Data in Minecraft: Java Edition VarInt format.
