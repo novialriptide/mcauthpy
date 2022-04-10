@@ -104,6 +104,15 @@ class Client:
         """
         return struct.unpack("?", self.connection.recv(1))[0]
 
+    def unpack_uuid(self) -> bool:
+        """Unpacks an UUID from socket connection.
+        
+        Returns:
+            bool: The unpacked UUID.
+
+        """
+        return self.unpack_string(16)
+
     def pack_boolean(self, value: bool) -> bytes:
         """Converts a boolean to a boolean in bytes format.
 
