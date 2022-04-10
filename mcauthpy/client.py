@@ -37,82 +37,6 @@ class Client:
     def minecraft_sha1_hash(self, sha1_hash):
         return format(int.from_bytes(sha1_hash.digest(), byteorder="big", signed=True), "x")
 
-    def unpack_varint(self) -> int:
-        """Unpacks a VarInt from socket connection.
-
-        Returns:
-            int: The unpacked VarInt as a Python integer.
-
-        """
-        value = 0
-        position = 0
-
-        while True:
-            current_byte = self.connection.recv(1)
-            value |= (ord(current_byte) & SEGMENT_BITS) << position
-
-            if ord(current_byte) & CONTINUE_BIT == 0:
-                break
-
-            position += 7
-
-            if position >= 32:
-                raise RuntimeError("VarInt is too big")
-
-        return value
-
-    def unpack_varlong(self) -> int:
-        """Unpacks a VarLong from socket connection.
-
-        Returns:
-            int: The unpacked VarLong as a Python integer.
-
-        """
-        value = 0
-        position = 0
-
-        while True:
-            current_byte = self.connection.recv(1)
-            value |= (ord(current_byte) & CONTINUE_BIT) << position
-
-            if (ord(current_byte) & CONTINUE_BIT) == 0:
-                break
-
-            position += 7
-
-            if position >= 64:
-                raise RuntimeError("VarLong is too big")
-
-    def unpack_string(self, str_length: int) -> str:
-        """Unpacks a string from socket connection.
-        
-        Parameters:
-            str_length (int): The string's length.
-        
-        Returns:
-            str: The unpacked string.
-
-        """
-        return self.connection.recv(1 + (str_length * 4) + 3)
-
-    def unpack_boolean(self) -> bool:
-        """Unpacks a boolean from socket connection.
-        
-        Returns:
-            bool: The unpacked boolean.
-
-        """
-        return struct.unpack("?", self.connection.recv(1))[0]
-
-    def unpack_uuid(self) -> bool:
-        """Unpacks an UUID from socket connection.
-        
-        Returns:
-            bool: The unpacked UUID.
-
-        """
-        return self.unpack_string(16)
-
     def pack_boolean(self, value: bool) -> bytes:
         """Converts a boolean to a boolean in bytes format.
 
@@ -218,11 +142,10 @@ class Client:
 
         return self.connection.recv(data_length)
 
-    def raw_read(self) -> bytes:
+    def raw_read(self, bytes_size: int = 1024) -> bytes:
         """Reads data sent from the server.
         
         Returns:
             bytes: The raw data.
         
         """
-        return self.connection.recv(1024)
