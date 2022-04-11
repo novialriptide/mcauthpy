@@ -3,6 +3,8 @@ from typing import Tuple
 import socket
 import struct
 
+from mcauthpy.packet_buffer import PacketBuffer
+
 SEGMENT_BITS = 0x7F
 CONTINUE_BIT = 0x80
 
@@ -130,6 +132,15 @@ class Client:
         out = self.pack_varint(len(data)) + data
         self.connection.send(out)
         return out
+
+    def get_packet(self) -> PacketBuffer:
+        """Returns a PacketBuffer that was sent from the server.
+
+        Returns:
+            PacketBuffer: The packed data.
+
+        """
+        return PacketBuffer(self.raw_read())
 
     def read(self) -> bytes:
         """Reads and unpacks the packet sent from the server.
