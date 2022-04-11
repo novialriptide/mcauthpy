@@ -1,107 +1,25 @@
+"""
+There are some functions that are not required through the authentication process.
+The following functions are:
+ - get_playerdata()
+ - get_blocked_servers()
+ - check_game_ownership()
+
+"""
 from typing import List
 
 import requests
-import base64
 import json
+import re
+import base64
 
+
+CLIENT_ID = "00000000402b5328"
+SCOPE = "service::user.auth.xboxlive.com::MBI_SSL"
 HEADER = {
     "User-Agent": "Novial Browser/7.22",
     "Content-Type": "application/x-www-form-urlencoded",
 }
-
-
-def _get_auth_header(mc_access_token: str) -> json:
-    """Generates an Authorization Header for requests.
-
-    Parameters:
-        mc_access_token (str): The Minecraft access token.
-
-    Returns:
-        json: The generated header.
-
-    """
-    return {
-        "Authorization": f"Bearer {mc_access_token}",
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-    }
-
-
-def generate_redirect_url(auth_code: str) -> str:
-    """Generate Redirect URI.
-
-    Parameters:
-        auth_code (str): Your Microsoft Authorization Code.
-
-    Returns:
-        str: Returns a Redirect URI.
-
-    """
-    return f"https://login.live.com/oauth20_desktop.srf?code={auth_code}"
-
-
-def extract_auth_code(redirected_url) -> str:
-    """Extracts the Authorization Code from the Redirect URI.
-
-    Parameters:
-        redirected_url (str): The Redirect URI.
-
-    Returns:
-        str: Returns the Authorization Code.
-
-    """
-    redirected_url = redirected_url.replace(
-        "https://login.live.com/oauth20_desktop.srf?code=", ""
-    )
-    redirected_url = redirected_url.replace("&lc=1033", "")
-
-    return redirected_url
-
-
-def get_microsoft_secret(
-    client_id: str, client_secret: str, auth_code: str, redirect_uri: str
-) -> json:
-    """Generates secrets such as access token and user id used to log into Xbox.
-
-    Parameters:
-        client_id (str): The client's id.
-        client_secret (str): The client's secret.
-        auth_code (str): Authorization Code.
-        redirect_uri (str): The Redirect URI.
-
-    Returns:
-        json: Data from https://login.live.com/oauth20_token.srf.
-
-    """
-    url = f"https://login.live.com/oauth20_token.srf"
-    response = requests.post(
-        url,
-        headers=HEADER,
-        data={
-            "client_id": client_id,
-            "client_secret": client_secret,
-            "grant_type": "authorization_code",
-            "code": auth_code,
-            "redirect_uri": redirect_uri,
-        },
-    )
-    return response.json()
-
-
-def get_uuid(username: str) -> str:
-    """Sends a GET request to api.mojang.com and returns the UUID for <username>.
-
-    Parameters:
-        username (str): The player's username.
-
-    Returns:
-        str: The Minecraft player's username.
-
-    """
-    response = requests.get(
-        f"https://api.mojang.com/users/profiles/minecraft/{username}"
-    )
-    return response.json()["id"]
 
 
 def get_playerdata(uuid: str, decode: bool = True) -> json:
@@ -144,6 +62,74 @@ def get_blocked_servers() -> List[str]:
     )
 
 
+def check_game_ownership(mc_access_token: str) -> json:
+    response = requests.post(
+        "https://api.minecraftservices.com/entitlements/mcstore",
+        headers=_get_auth_header(mc_access_token),
+    )
+
+    return response.json()
+
+
+def _get_auth_header(mc_access_token: str) -> json:
+    """Generates an Authorization Header for requests.
+
+    Parameters:
+        mc_access_token (str): The Minecraft access token.
+
+    Returns:
+        json: The generated header.
+
+    """
+    return {
+        "Authorization": f"Bearer {mc_access_token}",
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+    }
+
+
+def get_microsoft_secret(email: str, password: str) -> json:
+    """Generates secrets such as access token and user id used to log into Xbox.
+
+    Parameters:
+        email (str): Your Microsoft email.
+        password (str): Your Microsoft password.
+
+    Returns:
+        json: Data from https://login.live.com/oauth20_token.srf.
+
+    """
+    redirect_uri = "https://login.live.com/oauth20_desktop.srf"
+    login_url = f"https://login.live.com/oauth20_authorize.srf?client_id={CLIENT_ID}&response_type=code&redirect_uri={redirect_uri}&scope={SCOPE}"
+    response = requests.get(login_url)
+    cookies = response.cookies
+    content = response.text
+    ppft = re.search('sFTTag:[ ]?\'.*value="(.*)"/>', content).group(1)
+    url_post = re.search("urlPost:[ ]?'(.+?(?='))", content).group(1)
+
+    response1 = requests.post(
+        url_post,
+        cookies=cookies,
+        data={"login": email, "loginfmt": email, "passwd": password, "ppft": ppft},
+    )
+
+    auth_code = re.search("[?|&]code=([\\w.-]+)", response1.url).group(1)
+
+    url = f"https://login.live.com/oauth20_token.srf"
+    response = requests.post(
+        url,
+        headers=HEADER,
+        data={
+            "client_id": CLIENT_ID,
+            "grant_type": "authorization_code",
+            "code": auth_code,
+            "redirect_uri": "https://login.live.com/oauth20_desktop.srf",
+            "scope": SCOPE,
+        },
+    )
+    return response.json()
+
+
 def get_xboxlive_secret(access_token: str) -> json:
     """Phase 1 of authenticating to Xbox Live servers.
 
@@ -161,7 +147,7 @@ def get_xboxlive_secret(access_token: str) -> json:
             "Properties": {
                 "AuthMethod": "RPS",
                 "SiteName": "user.auth.xboxlive.com",
-                "RpsTicket": f"d={access_token}",
+                "RpsTicket": f"{access_token}",
             },
             "RelyingParty": "http://auth.xboxlive.com",
             "TokenType": "JWT",
@@ -213,15 +199,6 @@ def get_minecraft(user_hash: str, xsts_token: str) -> json:
     return response.json()
 
 
-def check_game_ownership(mc_access_token: str) -> json:
-    response = requests.post(
-        "https://api.minecraftservices.com/entitlements/mcstore",
-        headers=_get_auth_header(mc_access_token),
-    )
-
-    return response.json()
-
-
 def get_mc_profile(mc_access_token: str) -> json:
     """Returns Minecraft profile belonging to mc_access_token.
     Warning, this contains sensitive information!
@@ -241,49 +218,21 @@ def get_mc_profile(mc_access_token: str) -> json:
     return response.json()
 
 
-def generate_login_url(client_id: str, redirect_uri: str) -> str:
-    """Generate a login URL for your Microsoft Azure account. Once you put the URL in your browser, it will
-    redirect you to your Microsoft account's authorization code. This URL will only be valid for a couple of
-    seconds!
-
-    Alert: You should use this in your browser window.
-
-    Parameters:
-        client_id (str): Your Microsoft Azure client id.
-        redirect_uri (str): The Redirect URI; use `generate_redirect_url()`.
-
-    Returns:
-        str: The login URL.
-
-    """
-    return f"https://login.live.com/oauth20_authorize.srf?client_id={client_id}&response_type=code&redirect_uri={redirect_uri}&scope=XboxLive.signin%20offline_access"
-
-
 def get_mc_access_token(
-    client_id: str,
-    client_secret: str,
-    auth_code: str,
-    redirect_uri: str = "https://login.live.com/oauth20_desktop.srf",
+    email: str,
+    password: str,
 ) -> str:
     """Get a user's Minecraft access token.
 
     Parameters:
-        client_id (str): Your Microsoft Azure's client id.
-        client_secret (str): Your Microsoft Azure's client secret.
-        auth_code (str): Your Microsoft account authorization code from generate_login_url().
-        redirect_uri (str): The Redirect URI.
+        email (str): Your Microsoft email address.
+        password (str): Your Microsoft password.
 
     Returns:
         str: Your Minecraft: Java Edition access token.
 
     """
-    ms_secret = get_microsoft_secret(
-        client_id,
-        client_secret,
-        auth_code,
-        redirect_uri,
-    )
-
+    ms_secret = get_microsoft_secret(email, password)
     access_token = ms_secret["access_token"]
 
     xbox_secret = get_xboxlive_secret(access_token)
