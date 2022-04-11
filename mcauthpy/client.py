@@ -35,7 +35,9 @@ class Client:
         self.connection.connect((self.server_ip, self.server_port))
 
     def minecraft_sha1_hash(self, sha1_hash):
-        return format(int.from_bytes(sha1_hash.digest(), byteorder="big", signed=True), "x")
+        return format(
+            int.from_bytes(sha1_hash.digest(), byteorder="big", signed=True), "x"
+        )
 
     def pack_boolean(self, value: bool) -> bytes:
         """Converts a boolean to a boolean in bytes format.
@@ -144,9 +146,9 @@ class Client:
 
     def raw_read(self, bytes_size: int = 1024) -> bytes:
         """Reads data sent from the server.
-        
+
         Returns:
             bytes: The raw data.
-        
+
         """
         return self.connection.recv(bytes_size)

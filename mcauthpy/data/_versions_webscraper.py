@@ -20,7 +20,7 @@ def pack_data(release_name: str, version_number: int):
         {
             "release_name": release_name,
             "versions_number": version_number,
-            "protocol_encryption_uses_server_id": None
+            "protocol_encryption_uses_server_id": None,
         }
     )
 

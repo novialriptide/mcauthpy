@@ -4,6 +4,7 @@ import io
 SEGMENT_BITS = 0x7F
 CONTINUE_BIT = 0x80
 
+
 class PacketBuffer:
     def __init__(self, data: bytes) -> None:
         self.data = io.BytesIO(data)
@@ -53,12 +54,12 @@ class PacketBuffer:
 
             if position >= 64:
                 raise RuntimeError("VarLong is too big")
-        
+
         return value
 
     def unpack_string(self, str_length) -> bytes:
         """Unpacks a string from socket connection.
-        
+
         Returns:
             str: The unpacked string.
 
@@ -67,7 +68,7 @@ class PacketBuffer:
 
     def unpack_byte_array(self, length) -> bytes:
         """Unpacks a string from socket connection.
-        
+
         Returns:
             str: The unpacked string.
 
@@ -76,7 +77,7 @@ class PacketBuffer:
 
     def unpack_boolean(self) -> bool:
         """Unpacks a boolean from socket connection.
-        
+
         Returns:
             bool: The unpacked boolean.
 
@@ -85,7 +86,7 @@ class PacketBuffer:
 
     def unpack_uuid(self) -> bool:
         """Unpacks an UUID from socket connection.
-        
+
         Returns:
             bool: The unpacked UUID.
 
