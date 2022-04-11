@@ -1,8 +1,10 @@
 import unittest
 import mcauthpy
 import hashlib
+from unittest_prettify.colorize import colorize, GREEN
 
 
+@colorize(color=GREEN)
 class DataTypesTest(unittest.TestCase):
     def test_pack_varint(self):
         c = mcauthpy.Client()
@@ -38,13 +40,20 @@ class DataTypesTest(unittest.TestCase):
 
     def test_sha1(self):
         c = mcauthpy.Client()
-        
-        self.assertEqual(c.minecraft_sha1_hash(hashlib.sha1(b"Notch")), "4ed1f46bbe04bc756bcb17c0c7ce3e4632f06a48")
-        self.assertEqual(c.minecraft_sha1_hash(hashlib.sha1(b"jeb_")), "-7c9d5b0044c130109a5d7b5fb5c317c02b4e28c1")
-        self.assertEqual(c.minecraft_sha1_hash(hashlib.sha1(b"simon")), "88e16a1019277b15d58faf0541e11910eb756f6")
 
-    def test_pack_boolean(self):
-        
+        self.assertEqual(
+            c.minecraft_sha1_hash(hashlib.sha1(b"Notch")),
+            "4ed1f46bbe04bc756bcb17c0c7ce3e4632f06a48",
+        )
+        self.assertEqual(
+            c.minecraft_sha1_hash(hashlib.sha1(b"jeb_")),
+            "-7c9d5b0044c130109a5d7b5fb5c317c02b4e28c1",
+        )
+        self.assertEqual(
+            c.minecraft_sha1_hash(hashlib.sha1(b"simon")),
+            "88e16a1019277b15d58faf0541e11910eb756f6",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
