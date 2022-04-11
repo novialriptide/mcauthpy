@@ -149,3 +149,4 @@ class Client:
             bytes: The raw data.
         
         """
+        return self.connection.recv(bytes_size)
