@@ -1,10 +1,8 @@
 import unittest
 import mcauthpy
 import hashlib
-from unittest_prettify.colorize import colorize, GREEN
 
 
-@colorize(color=GREEN)
 class DataTypesTest(unittest.TestCase):
     def test_pack_varint(self):
         c = mcauthpy.Client()

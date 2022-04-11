@@ -1,9 +1,7 @@
 import mcauthpy
 import unittest
-from unittest_prettify.colorize import colorize, GREEN
 
 
-@colorize(color=GREEN)
 class PacketBufferTest(unittest.TestCase):
     def test_unpack_varint(self):
         pb = mcauthpy.PacketBuffer(b"\x00")
