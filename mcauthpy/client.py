@@ -19,6 +19,8 @@ class Client:
         self.server_ip = None
         self.server_port = None
         self.protocol_version = None
+        
+        self.recieved_data = b""
 
     def connect(
         self, server_ip: str, server_port: int = 25565, protocol_version: int = 758
@@ -37,6 +39,9 @@ class Client:
         self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connection.settimeout(self._timeout)
         self.connection.connect((self.server_ip, self.server_port))
+
+    def receive_data(self, data: bytes) -> None:
+        self.received_data += data
 
     def send_packet(self, packet_id: int, *fields: Tuple[bytes]) -> bytes:
         """Sends a packet to the connected server.

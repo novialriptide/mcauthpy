@@ -5,17 +5,19 @@ import io
 SEGMENT_BITS = 0x7F
 CONTINUE_BIT = 0x80
 
-def unpack_packet(connection) -> "PacketBuffer":
-    buffer = PacketBuffer(b"")
-    length = buffer.unpack_varint(_connection=connection)
-    buffer.data = connection.recv(length)
-    return buffer
-
 class PacketBuffer:
-    def __init__(self, connection: socket.socket, compressed: bool = False) -> None:
-        self.packet_length = self.unpack_varint(_connection = connection)
-        self.data = io.BytesIO(connection.recv(self.packet_length))
+    def __init__(self, data: bytes, compressed: bool = False) -> None:
+        self.data = data
         self.compressed = compressed
+
+    def read(self, length: int) -> bytes:
+        out = self.data[:length]
+        self.data = self.data[length:]
+        
+        return out
+
+    def add(self, data: bytes) -> None:
+        self.data += data
 
     def unpack_varint(self, _connection: socket.socket = None) -> int:
         """Unpacks a VarInt.
@@ -34,7 +36,7 @@ class PacketBuffer:
             if _connection is not None:
                 current_byte = _connection.recv(1)
             if _connection is None:
-                current_byte = self.data.read(1)
+                current_byte = self.read(1)
 
             value |= (ord(current_byte) & SEGMENT_BITS) << position
 
@@ -62,7 +64,7 @@ class PacketBuffer:
         position = 0
 
         while True:
-            current_byte = self.data.read(1)
+            current_byte = self.read(1)
             value |= (ord(current_byte) & SEGMENT_BITS) << position
 
             if (ord(current_byte) & CONTINUE_BIT) == 0:
@@ -82,7 +84,7 @@ class PacketBuffer:
             str: The unpacked string.
 
         """
-        return self.data.read(1 + (str_length * 4) + 3)
+        return self.read(1 + (str_length * 4) + 3)
 
     def unpack_byte_array(self, length) -> bytes:
         """Unpacks a string.
@@ -91,7 +93,7 @@ class PacketBuffer:
             str: The unpacked string.
 
         """
-        return self.data.read(length)
+        return self.read(length)
 
     def unpack_boolean(self) -> bool:
         """Unpacks a boolean.
@@ -100,7 +102,7 @@ class PacketBuffer:
             bool: The unpacked boolean.
 
         """
-        return struct.unpack("?", self.data.read(1))[0]
+        return struct.unpack("?", self.read(1))[0]
 
     def unpack_uuid(self) -> bool:
         """Unpacks an UUID.
