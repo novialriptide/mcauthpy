@@ -33,7 +33,7 @@ client.send_packet( # Send Handshake Packet
     <p>
         <a href="https://github.com/novialriptide/mcauthpy#readme">English</a>,
         <a href="https://github.com/novialriptide/mcauthpy/blob/main/.github/README.ko.MD">한국말</a>,
-        <a href="https://github.com/novialriptide/mcauthpy/blob/main/.github/README.fr.md">Français</a>
+        <a href="https://github.com/novialriptide/mcauthpy/blob/main/.github/README.fr.MD">Français</a>
     </p>
     <p>Last Updated: 4/12/2022</p>
 </div>
