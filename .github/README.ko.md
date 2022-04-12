@@ -14,7 +14,7 @@
 2. `pip install .` 수행
 
 ## 사용하는 방법 (마지막 업데이트: 2022년 4월 12일)
-[핸드셰이크](https://wiki.vg/Protocol#Handshake) 패킷 전송의 예
+[핸드셰이크](https://wiki.vg/Protocol#Handshake) 패킷 전송의 한 종류
 ```python
 import mcauthpy
 
