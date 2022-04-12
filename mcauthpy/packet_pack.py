@@ -3,6 +3,7 @@ import struct
 SEGMENT_BITS = 0x7F
 CONTINUE_BIT = 0x80
 
+
 def pack_boolean(value: bool) -> bytes:
     """Converts a boolean to a boolean in bytes format.
 
@@ -17,6 +18,7 @@ def pack_boolean(value: bool) -> bytes:
         return b"\x01"
     else:
         return b"\x00"
+
 
 def pack_varint(value: int) -> bytes:
     """Converts a Python int to a Minecraft: Java Edition VarInt. Does not
@@ -43,6 +45,7 @@ def pack_varint(value: int) -> bytes:
 
         value >>= 7
 
+
 def pack_varlong(value: int) -> bytes:
     """Converts a Python int to a Minecraft: Java Edition VarLong. This
     function directly calls `pack_varint()`. Does not support negatives.
@@ -56,8 +59,9 @@ def pack_varlong(value: int) -> bytes:
     """
     if value < 0:
         raise Exception("pack_varlong() does not support negatives yet.")
-    
+
     return pack_varint(value)
+
 
 def pack_unsigned_short(value: int) -> bytes:
     """Converts a Python int to an Unsigned Short.
@@ -69,6 +73,7 @@ def pack_unsigned_short(value: int) -> bytes:
     """
     return struct.pack("H", value)
 
+
 def pack_string(value: str) -> bytes:
     """Converts a Python string to a Minecraft: Java Edition String.
 
@@ -79,7 +84,6 @@ def pack_string(value: str) -> bytes:
     value = value.encode("utf-8")
     return pack_varint(len(value)) + value
 
+
 def minecraft_sha1_hash(sha1_hash):
-    return format(
-        int.from_bytes(sha1_hash.digest(), byteorder="big", signed=True), "x"
-    )
+    return format(int.from_bytes(sha1_hash.digest(), byteorder="big", signed=True), "x")

@@ -30,7 +30,8 @@ class DataTypesTest(unittest.TestCase):
         self.assertEqual(mcauthpy.pack_varlong(255), b"\xff\x01")
         self.assertEqual(mcauthpy.pack_varlong(2147483647), b"\xff\xff\xff\xff\x07")
         self.assertEqual(
-            mcauthpy.pack_varlong(9223372036854775807), b"\xff\xff\xff\xff\xff\xff\xff\xff\x7f"
+            mcauthpy.pack_varlong(9223372036854775807),
+            b"\xff\xff\xff\xff\xff\xff\xff\xff\x7f",
         )
         # self.assertEqual(mcauthpy.pack_varlong(-1), b"\xff\xff\xff\xff\xff\xff\xff\xff\xff\x01")
         # self.assertEqual(mcauthpy.pack_varlong(-2147483648), b"\x80\x80\x80\x80\xf8\xff\xff\xff\x01")

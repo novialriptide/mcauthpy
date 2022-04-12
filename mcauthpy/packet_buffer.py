@@ -5,6 +5,7 @@ import io
 SEGMENT_BITS = 0x7F
 CONTINUE_BIT = 0x80
 
+
 class PacketBuffer:
     def __init__(self, data: bytes, compressed: bool = False) -> None:
         self.data = data
@@ -13,7 +14,7 @@ class PacketBuffer:
     def read(self, length: int) -> bytes:
         out = self.data[:length]
         self.data = self.data[length:]
-        
+
         return out
 
     def add(self, data: bytes) -> None:

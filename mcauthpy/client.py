@@ -19,7 +19,7 @@ class Client:
         self.server_ip = None
         self.server_port = None
         self.protocol_version = None
-        
+
         self.recieved_data = b""
 
     def connect(
@@ -65,7 +65,9 @@ class Client:
         self.connection.send(out)
         return out
 
-    def get_packet(self, force_size: int or None = None, compressed: bool = False) -> PacketBuffer:
+    def get_packet(
+        self, force_size: int or None = None, compressed: bool = False
+    ) -> PacketBuffer:
         """Returns a PacketBuffer that was sent from the server.
 
         Returns:
@@ -77,7 +79,7 @@ class Client:
         if force_size is not None:
             packet_length = force_size
 
-        return PacketBuffer(self.connection.recv(packet_length), compressed = compressed)
+        return PacketBuffer(self.connection.recv(packet_length), compressed=compressed)
 
     def raw_read(self, bytes_size: int = 1024) -> bytes:
         """Reads data sent from the server.
