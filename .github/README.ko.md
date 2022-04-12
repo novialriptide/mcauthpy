@@ -32,8 +32,8 @@ client.send_packet( # 핸드셰이크 패킷 보내다
 <div align="center">
     <p>
         <a href="https://github.com/novialriptide/mcauthpy#readme">English</a>,
-        <a href="https://github.com/novialriptide/mcauthpy/blob/main/.github/README.fr.MD">한국말</a>,
-        <a href="https://github.com/novialriptide/mcauthpy/blob/main/.github/README.ko.md">Français</a>
+        <a href="https://github.com/novialriptide/mcauthpy/blob/main/.github/README.ko.MD">한국말</a>,
+        <a href="https://github.com/novialriptide/mcauthpy/blob/main/.github/README.fr.md">Français</a>
     </p>
     <p>마지막 업데이트: 2022년 4월 12일</p>
 </div>
