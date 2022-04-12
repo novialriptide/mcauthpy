@@ -9,23 +9,23 @@
     <img src="https://img.shields.io/tokei/lines/github/novialriptide/mcauthpy" alt="Lines">
 </div>
 
-## Build From Source
-1. Clone repo
-2. Run `pip install .`
+## 소스에서 빌드
+1. 저장소 복제하다
+2. `pip install .` 수행
 
-## Standard Usage (Last Updated: 4/12/2022)
-Here's an example of sending a [Handshake](https://wiki.vg/Protocol#Handshake) packet.
+## 사용하는 방법 (마지막 업데이트: 2022년 4월 12일)
+[핸드셰이크](https://wiki.vg/Protocol#Handshake) 패킷 전송의 예
 ```python
 import mcauthpy
 
 client = mcauthpy.Client()
 client.connect("localhost")
-client.send_packet( # Send Handshake Packet
-    0x00, # Packet ID
-    mcauthpy.pack_varint(758), # Protocol Version
-    mcauthpy.pack_string("localhost"), # Server Address
-    mcauthpy.pack_unsigned_short(25565), # Server Port
-    mcauthpy.pack_varint(1) # Next State (1 for status)
+client.send_packet( # 핸드셰이크 패킷 보내다
+    0x00, # 패킷 신분증
+    mcauthpy.pack_varint(758), # 프로토콜 버전
+    mcauthpy.pack_string("localhost"), # 서버 주소
+    mcauthpy.pack_unsigned_short(25565), # 서버 포트
+    mcauthpy.pack_varint(1) # 상태 (1 = 상태)
 )
 ```
 
@@ -35,5 +35,5 @@ client.send_packet( # Send Handshake Packet
         <a href="https://github.com/novialriptide/mcauthpy/blob/main/.github/README.fr.MD">한국말</a>,
         <a href="https://github.com/novialriptide/mcauthpy/blob/main/.github/README.ko.md">Français</a>
     </p>
-    <p>Last Updated: 4/12/2022</p>
+    <p>마지막 업데이트: 2022년 4월 12일</p>
 </div>
