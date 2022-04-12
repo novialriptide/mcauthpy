@@ -31,11 +31,11 @@ class PacketBufferTest(unittest.TestCase):
         pb = mcauthpy.PacketBuffer(b"\xff\xff\xff\xff\x07")
         self.assertEqual(2147483647, pb.unpack_varint())
 
-        # pb = mcauthpy.PacketBuffer(b"\xff\xff\xff\xff\x0f")
-        # self.assertEqual(-1, pb.unpack_varint())
+        pb = mcauthpy.PacketBuffer(b"\xff\xff\xff\xff\x0f")
+        self.assertEqual(-1, pb.unpack_varint())
 
-        # pb = mcauthpy.PacketBuffer(b"\x80\x80\x80\x80\x08")
-        # self.assertEqual(-2147483648, pb.unpack_varint())
+        pb = mcauthpy.PacketBuffer(b"\x80\x80\x80\x80\x08")
+        self.assertEqual(-2147483648, pb.unpack_varint())
 
     def test_unpack_varlong(self):
         pb = mcauthpy.PacketBuffer(b"\x00")

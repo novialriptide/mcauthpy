@@ -1,0 +1,2 @@
+move all pack() functions to packet_buffer as classmethods
+replace IOByte with just b"" in PacketBuffer
