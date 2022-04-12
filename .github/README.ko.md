@@ -1,6 +1,6 @@
 <div align="center">
     <h1>mcauthpy</h1>
-    <p>Minecraft: Java Edition Protocol API that allows you to send packets to Mojang & Minecraft servers in Python.</p>
+    <p>이 파일은 모장, 마인크래프트 서버로 패킷을 보낼수있는 기능을 갖추는 마인크래프트 자바 에디션 프로토콜 API 입니다.</p>
     <img src="https://img.shields.io/github/license/novialriptide/mcauthpy" alt="License">
     <img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Code Style">
     <img src="https://img.shields.io/github/issues/novialriptide/mcauthpy" alt="Issues">
@@ -35,5 +35,5 @@ client.send_packet( # 핸드셰이크 패킷 보내다
         <a href="https://github.com/novialriptide/mcauthpy/blob/main/.github/README.ko.MD">한국말</a>,
         <a href="https://github.com/novialriptide/mcauthpy/blob/main/.github/README.fr.MD">Français</a>
     </p>
-    <p>마지막 업데이트: 2022년 4월 12일</p>
+    <p>마지막 업데이트: 2022년 4월 12일, 노비알하고 Ellen 번역</p>
 </div>
