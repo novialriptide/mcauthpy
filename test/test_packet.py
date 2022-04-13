@@ -77,6 +77,26 @@ class PacketBufferTest(unittest.TestCase):
         # pb = mcauthpy.PacketBuffer(b"\x80\x80\x80\x80\x80\x80\x80\x80\x80\x01")
         # self.assertEqual(-9223372036854775808, pb.unpack_varlong())
 
+    def test_read_packet1(self):
+        pb = mcauthpy.PacketBuffer(b"\xff\xff\x7f")
+        pb.add(b"\x7f")
+        
+        unpacked_varint = pb.unpack_varint()
+        self.assertEqual(unpacked_varint, 2097151)
+        self.assertEqual(pb.data, b"\x7f")
+
+    def test_read_packet2(self):
+        pb = mcauthpy.PacketBuffer(b"")
+        pb.add(mcauthpy.pack_string("Novial"))
+        pb.add(mcauthpy.pack_string("Novial"))
+        
+        string_length = pb.unpack_varint()
+        unpacked_string = pb.unpack_string(string_length).decode("utf-8")
+        self.assertEqual(unpacked_string, "Novial")
+        
+        string_length = pb.unpack_varint()
+        unpacked_string = pb.unpack_string(string_length).decode("utf-8")
+        self.assertEqual(unpacked_string, "Novial")
 
 if __name__ == "__main__":
     unittest.main()
