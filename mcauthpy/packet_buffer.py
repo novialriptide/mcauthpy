@@ -78,14 +78,16 @@ class PacketBuffer:
 
         return value
 
-    def unpack_string(self, str_length) -> bytes:
+    def unpack_string(self) -> bytes:
         """Unpacks a string.
 
         Returns:
             str: The unpacked string.
 
         """
-        return self.read(1 + (str_length * 4) + 3)
+        str_length = self.unpack_varint()
+        return self.read(str_length)
+        # return self.read(1 + (str_length * 4) + 3)
 
     def unpack_byte_array(self, length) -> bytes:
         """Unpacks a string.
