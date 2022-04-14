@@ -32,8 +32,8 @@ client.send_packet( # Envoyer Poignée De Main Paquet
 <div align="center">
     <p>
         <a href="https://github.com/novialriptide/mcauthpy#readme">English</a>,
-        <a href="https://github.com/novialriptide/mcauthpy/blob/main/.github/README.ko.MD">한국말</a>,
-        <a href="https://github.com/novialriptide/mcauthpy/blob/main/.github/README.fr.MD">Français</a>
+        <a href="https://github.com/novialriptide/mcauthpy/blob/main/.github/README.ko.md">한국말</a>,
+        <a href="https://github.com/novialriptide/mcauthpy/blob/main/.github/README.fr.md">Français</a>
     </p>
     <p>Dernier Mettre à Jour: 4/12/2022, traduit par Novial</p>
 </div>
