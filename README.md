@@ -29,11 +29,15 @@ client.send_packet( # Send Handshake Packet
 )
 ```
 
+## Special Thanks
+ - [Tyler Kennedy](https://github.com/TkTech) for [Burger](https://github.com/TkTech/Burger)
+ - Ellen for help on the Korean translations
+
 <div align="center">
     <p>
         <a href="https://github.com/novialriptide/mcauthpy#readme">English</a>,
         <a href="https://github.com/novialriptide/mcauthpy/blob/main/.github/README.ko.md">한국말</a>,
         <a href="https://github.com/novialriptide/mcauthpy/blob/main/.github/README.fr.md">Français</a>
     </p>
-    <p>Last Updated: 4/12/2022</p>
+    <p>Last Updated: 4/15/2022</p>
 </div>
