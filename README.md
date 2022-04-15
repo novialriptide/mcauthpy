@@ -30,7 +30,8 @@ client.send_packet( # Send Handshake Packet
 ```
 
 ## Special Thanks
- - [Tyler Kennedy](https://github.com/TkTech) for [Burger](https://github.com/TkTech/Burger)
+ - [Bixilon](https://gitlab.bixilon.de/bixilon) and team for the [protocol data](https://gitlab.bixilon.de/bixilon/minosoft/-/raw/master/src/main/resources/assets/minosoft/mapping/versions.json)
+ - [wiki.vg](https://wiki.vg/) team for the documentation on the Minecraft Protocol
  - Ellen for help on the Korean translations
 
 <div align="center">
