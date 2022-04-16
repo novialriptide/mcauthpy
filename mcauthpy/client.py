@@ -4,6 +4,8 @@ import socket
 import os
 import hashlib
 import requests
+import copy
+import zlib
 
 from .auth import authenticate, get_mc_access_token
 from .packet_buffer import PacketBuffer
@@ -31,12 +33,15 @@ class Client:
         self.server_ip = None
         self.server_port = None
         self.protocol_version = None
+        self.compression_threshold = None
 
         self.email = email
         self.password = password
         self._mctoken = get_mc_access_token(self.email, self.password)
         self._mcprofile = authenticate(self._mctoken)
         self.username = self._mcprofile["name"]
+
+        self.buffer = PacketBuffer(b"")
 
     def connect(
         self, server_ip: str, server_port: int = 25565, protocol_version: int = 758
@@ -55,6 +60,54 @@ class Client:
         self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connection.settimeout(self._timeout)
         self.connection.connect((self.server_ip, self.server_port))
+
+    def get_received_buffer(self) -> Tuple[int, PacketBuffer]:
+        while True:
+            encrypted_data = self.connection.recv(1024)
+            data = self.cipher.decrypt(encrypted_data)
+            self.buffer.add(data)
+            self.saved_buffer = copy.copy(self.buffer.data)
+
+            try:
+                packet_length, packet_length_bytes = self.buffer.unpack_varint(
+                    provide_bytes=True
+                )
+                packet = PacketBuffer(self.buffer.read(packet_length))
+
+                if packet_length >= self.compression_threshold:
+                    if packet_length > len(self.buffer.data):
+                        self.buffer.data = self.saved_buffer
+                        continue
+
+                    data_length, data_length_bytes = packet.unpack_varint(
+                        provide_bytes=True
+                    )
+                    compressed_length = packet_length - len(data_length_bytes)
+                    compressed_data = packet.unpack_byte_array(compressed_length)
+                    uncompressed_data = PacketBuffer(zlib.decompress(compressed_data))
+
+                    packet_id = uncompressed_data.unpack_varint()
+                    uncompressed_data = uncompressed_data.data
+                elif packet_length < self.compression_threshold:
+                    packet_id = packet.unpack_varint()
+                    uncompressed_data = packet.unpack_byte_array(packet_length)
+
+                return packet_id, PacketBuffer(uncompressed_data)
+
+            except (RuntimeError):
+                self.buffer.data = self.saved_buffer
+                continue
+
+    def _get_compression_threshold(self) -> None:
+        encrypted_data = self.connection.recv(1024)
+        data = self.cipher.decrypt(encrypted_data)
+        self.buffer.add(data)
+        packet_length = self.buffer.unpack_varint()
+        packet = PacketBuffer(self.buffer.read(packet_length))
+
+        packet_id = packet.unpack_varint()
+        if packet_id == 3:
+            self.compression_threshold = packet.unpack_varint()
 
     def login_with_encryption(self) -> None:
         self.send_packet(
@@ -112,10 +165,8 @@ class Client:
         self.cipher = AES.new(
             shared_secret, AES.MODE_CFB, segment_size=8, iv=shared_secret
         )
-        self.buffer = PacketBuffer(b"")
 
-    def receive_data(self, data: bytes) -> None:
-        self.received_data += data
+        self._get_compression_threshold()
 
     def send_packet(self, packet_id: int, *fields: Tuple[bytes]) -> bytes:
         """Sends a packet to the connected server.
