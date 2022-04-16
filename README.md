@@ -13,12 +13,12 @@
 1. Clone repo
 2. Run `pip install .`
 
-## Standard Usage (Last Updated: 4/12/2022)
+## Standard Usage (Last Updated: 4/16/2022)
 Here's an example of sending a [Handshake](https://wiki.vg/Protocol#Handshake) packet.
 ```python
 import mcauthpy
 
-client = mcauthpy.Client()
+client = mcauthpy.Client("email", "password")
 client.connect("localhost")
 client.send_packet( # Send Handshake Packet
     0x00, # Packet ID
@@ -28,9 +28,20 @@ client.send_packet( # Send Handshake Packet
     mcauthpy.pack_varint(1) # Next State (1 for status)
 )
 ```
+Here's an example of receiving data from a connected server.
+```python
+import mcauthpy
+
+client = mcauthpy.Client("email", "password")
+client.connect("localhost")
+client.login_with_encryption()
+
+while True:
+    packet_id, buffer = c.get_received_buffer()
+    print(packet_id, buffer.data)
+```
 
 ## Special Thanks
- - [Bixilon](https://gitlab.bixilon.de/bixilon) and team for the [protocol data](https://gitlab.bixilon.de/bixilon/minosoft/-/raw/master/src/main/resources/assets/minosoft/mapping/versions.json)
  - [wiki.vg](https://wiki.vg/) team for the documentation on the Minecraft Protocol
  - Ellen for help on the Korean translations
 
