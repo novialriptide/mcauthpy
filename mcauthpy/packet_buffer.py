@@ -20,11 +20,11 @@ class PacketBuffer:
     def add(self, data: bytes) -> None:
         self.data += data
 
-    def unpack_varint(self, _connection: socket.socket = None) -> int:
+    def unpack_varint(self, provide_bytes: bool = False) -> int:
         """Unpacks a VarInt.
 
         Parameters:
-            _connection (socket.socket): If you want to unpack from a socket connection.
+            provide_bytes (int): Provide the length of the VarInt.
 
         Returns:
             int: The unpacked VarInt as a Python integer.
@@ -32,12 +32,11 @@ class PacketBuffer:
         """
         value = 0
         position = 0
+        read_bytes = b""
 
         while True:
-            if _connection is not None:
-                current_byte = _connection.recv(1)
-            if _connection is None:
-                current_byte = self.read(1)
+            current_byte = self.read(1)
+            read_bytes += current_byte
 
             value |= (ord(current_byte) & SEGMENT_BITS) << position
 
@@ -52,6 +51,8 @@ class PacketBuffer:
         if value & (1 << 31):
             value -= 1 << 32
 
+        if provide_bytes:
+            return value, read_bytes
         return value
 
     def unpack_varlong(self) -> int:
@@ -114,4 +115,7 @@ class PacketBuffer:
             bool: The unpacked UUID.
 
         """
-        return self.unpack_string(16)
+        return self.read(16 + 1)
+
+    def unpack_short(self) -> int:
+        return struct.unpack("h", self.read(2))[0]
