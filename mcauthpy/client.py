@@ -1,8 +1,6 @@
 from typing import Tuple
-from copy import copy
 
 import socket
-import zlib
 import os
 import hashlib
 import requests
