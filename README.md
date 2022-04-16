@@ -9,6 +9,11 @@
     <img src="https://img.shields.io/tokei/lines/github/novialriptide/mcauthpy" alt="Lines">
 </div>
 
+## Installation
+```
+pip install mcauthpy
+```
+
 ## Build From Source
 1. Clone repo
 2. Run `pip install .`
