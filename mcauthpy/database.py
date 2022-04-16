@@ -1,9 +1,8 @@
-from pkgutil import get_data
 import requests
 import json
 
 
-def get_database():
+def get_database() -> json:
     response = requests.get(
         "https://gitlab.bixilon.de/bixilon/minosoft/-/raw/master/src/main/resources/assets/minosoft/mapping/versions.json"
     )
@@ -25,4 +24,3 @@ def get_packets(protocol_id: int) -> json:
 if __name__ == "__main__":
     db = get_database()
     json.dump(db, open("data/versions.json", "w"), indent=4)
-    print(get_packets(820))
