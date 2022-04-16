@@ -69,9 +69,6 @@ class Client:
 
         self.send_packet(0x00, pack_string(self.username))
 
-        self.auth()
-
-    def auth(self) -> None:
         # Client Authentication
         p = PacketBuffer(self.connection.recv(1024))
         server_id = p.read(4)
@@ -86,7 +83,7 @@ class Client:
         encrypted_token = cipher.encrypt(verify_token, PKCS1v15())
 
         generated_hash = hashlib.sha1()
-        # generated_hash.update(server_id) # if 1.17.x > ??
+        # generated_hash.update(server_id) # if 1.7.x > ??
         generated_hash.update(b"")
         generated_hash.update(shared_secret)
         generated_hash.update(public_key)
