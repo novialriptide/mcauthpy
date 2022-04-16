@@ -5,7 +5,7 @@ setup(
     author="Andrew Hong",
     author_email="novialriptide@gmail.com",
     url="https://github.com/novialriptide/mcauthpy",
-    version="1.0.0.dev1",
+    version="1.0",
     install_requires=[
         "pycryptodome>=3.14.1",
         "cryptography>=36.0.2",
