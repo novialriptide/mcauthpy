@@ -6,4 +6,4 @@ from .commons import *
 from .database import *
 
 __all__ = []
-__version__ = "1.0.1"
+__version__ = "1.0.2.dev1"
