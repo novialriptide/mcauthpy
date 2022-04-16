@@ -2,6 +2,7 @@ import mcauthpy
 import unittest
 import zlib
 
+
 class PacketBufferTest(unittest.TestCase):
     def test_unpack_varint(self):
         pb = mcauthpy.PacketBuffer(b"\x00")
@@ -80,7 +81,7 @@ class PacketBufferTest(unittest.TestCase):
     def test_read_packet1(self):
         pb = mcauthpy.PacketBuffer(b"\xff\xff\x7f")
         pb.add(b"\x7f")
-        
+
         unpacked_varint = pb.unpack_varint()
         self.assertEqual(unpacked_varint, 2097151)
         self.assertEqual(pb.data, b"\x7f")
@@ -91,16 +92,16 @@ class PacketBufferTest(unittest.TestCase):
         pb.add(mcauthpy.pack_varint(4))
         pb.add(b"\x43\x23\x12")
         pb.add(mcauthpy.pack_string("Novial"))
-        
+
         unpacked_string = pb.unpack_string().decode("utf-8")
         self.assertEqual(unpacked_string, "Novial")
-        
+
         unpacked_string = pb.unpack_varint()
         self.assertEqual(unpacked_string, 4)
-        
+
         unpacked_array = pb.unpack_byte_array(3)
         self.assertEqual(unpacked_array, b"\x43\x23\x12")
-        
+
         unpacked_string = pb.unpack_string().decode("utf-8")
         self.assertEqual(unpacked_string, "Novial")
 
@@ -126,15 +127,18 @@ class PacketBufferTest(unittest.TestCase):
         delta_y = pb.unpack_short()
         delta_z = pb.unpack_short()
         on_ground = pb.unpack_boolean()
-    
+
     def test_read_chat_packet(self):
-        pb = mcauthpy.PacketBuffer(b'\x81\x84\x82\xd2\x01\x00\x0f\xbd\x01{"extra":[{"bold":false,"italic":false,"underlined":false,"strikethrough":false,"obfuscated":false,"color":"blue","text":"New version of Parties found: 3.2.4 (Current: 3.1.12)"}],"text":""}\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
+        pb = mcauthpy.PacketBuffer(
+            b'\x81\x84\x82\xd2\x01\x00\x0f\xbd\x01{"extra":[{"bold":false,"italic":false,"underlined":false,"strikethrough":false,"obfuscated":false,"color":"blue","text":"New version of Parties found: 3.2.4 (Current: 3.1.12)"}],"text":""}\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+        )
         packet_length = pb.unpack_varint()
         data_length = pb.unpack_varint()
         packet_id = pb.unpack_varint()
         json_data = pb.unpack_string()
         chat_pos = pb.unpack_varint()
         uuid = pb.unpack_uuid()
+
 
 if __name__ == "__main__":
     unittest.main()
