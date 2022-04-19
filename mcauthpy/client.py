@@ -7,6 +7,8 @@ import requests
 import copy
 import zlib
 
+from mcauthpy.exceptions import TooBigToUnpack
+
 from .auth import authenticate, get_mc_access_token
 from .packet_buffer import PacketBuffer
 from .packet_pack import (
@@ -42,6 +44,7 @@ class Client:
         self.username = self._mcprofile["name"]
 
         self.buffer = PacketBuffer(b"")
+        self.cipher = None
 
     def connect(
         self, server_ip: str, server_port: int = 25565, protocol_version: int = 758
@@ -69,32 +72,34 @@ class Client:
             self.saved_buffer = copy.copy(self.buffer.data)
 
             try:
-                packet_length, packet_length_bytes = self.buffer.unpack_varint(
-                    provide_bytes=True
-                )
+                packet_length = self.buffer.unpack_varint()
                 packet = PacketBuffer(self.buffer.read(packet_length))
 
-                if packet_length >= self.compression_threshold:
-                    if packet_length > len(self.buffer.data):
-                        self.buffer.data = self.saved_buffer
-                        continue
+                if packet_length > len(self.buffer.data):
+                    self.buffer.data = self.saved_buffer
+                    continue
 
+                elif packet_length >= self.compression_threshold:
                     data_length, data_length_bytes = packet.unpack_varint(
                         provide_bytes=True
                     )
+
                     compressed_length = packet_length - len(data_length_bytes)
                     compressed_data = packet.unpack_byte_array(compressed_length)
                     uncompressed_data = PacketBuffer(zlib.decompress(compressed_data))
 
-                    packet_id = uncompressed_data.unpack_varint()
+                    print(uncompressed_data.data[:25])
+                    packet_id, packet_id_bytes = uncompressed_data.unpack_varint(provide_bytes=True)
+                    print(packet_id_bytes)
                     uncompressed_data = uncompressed_data.data
+
                 elif packet_length < self.compression_threshold:
                     packet_id = packet.unpack_varint()
                     uncompressed_data = packet.unpack_byte_array(packet_length)
 
                 return packet_id, PacketBuffer(uncompressed_data)
 
-            except (RuntimeError):
+            except (TooBigToUnpack):
                 self.buffer.data = self.saved_buffer
                 continue
 
@@ -116,9 +121,10 @@ class Client:
             pack_string(self.server_ip),
             pack_unsigned_short(self.server_port),
             pack_varint(2),
+            encrypted=False
         )
 
-        self.send_packet(0x00, pack_string(self.username))
+        self.send_packet(0x00, pack_string(self.username), encrypted=False)
 
         # Client Authentication
         p = PacketBuffer(self.connection.recv(1024))
@@ -160,35 +166,47 @@ class Client:
             encrypted_secret,
             pack_varint(len(encrypted_token)),
             encrypted_token,
+            encrypted=False
         )
 
         self.cipher = AES.new(
             shared_secret, AES.MODE_CFB, segment_size=8, iv=shared_secret
         )
+        self.en_cipher = AES.new(
+            shared_secret, AES.MODE_CFB, segment_size=8, iv=shared_secret
+        )
 
         self._get_compression_threshold()
 
-    def send_packet(self, packet_id: int, *fields: Tuple[bytes]) -> bytes:
+    def send_packet(self, packet_id: int, *fields: Tuple[bytes], encrypted: bool = True) -> bytes:
         """Sends a packet to the connected server.
 
         Parameters:
             packet_id (int): The packet's id in hexadecimal format.
             *fields (Tuple[bytes]): The packed data to send to the server.
+            encrypted (bool): If the packet should be sent encrypted or not.
 
         Returns:
             bytes: The packet that is sent to the server.
 
         """
+        packet_id = pack_varint(packet_id)
+
         data = b""
-
-        data += pack_varint(packet_id)
-
         for field in fields:
             data += field
-
-        out = pack_varint(len(data)) + data
-        self.connection.send(out)
-        return out
+        
+        if encrypted:
+            data = packet_id + data
+            out = pack_varint(len(data)) + data
+            self.connection.send(out)
+            return self.en_cipher.encrypt(out)
+        
+        elif not encrypted:
+            data = packet_id + data
+            out = pack_varint(len(data)) + data
+            self.connection.send(out)
+            return out
 
     def unpack_packet(
         self, force_size: int or None = None, compressed: bool = False
