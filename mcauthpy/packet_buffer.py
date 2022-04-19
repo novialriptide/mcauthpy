@@ -2,6 +2,8 @@ import socket
 import struct
 import io
 
+from mcauthpy.exceptions import TooBigToUnpack
+
 SEGMENT_BITS = 0x7F
 CONTINUE_BIT = 0x80
 
@@ -46,7 +48,7 @@ class PacketBuffer:
             position += 7
 
             if position >= 32:
-                raise RuntimeError("VarInt is too big")
+                raise TooBigToUnpack("VarInt is too big")
 
         if value & (1 << 31):
             value -= 1 << 32
@@ -75,7 +77,7 @@ class PacketBuffer:
             position += 7
 
             if position >= 64:
-                raise RuntimeError("VarLong is too big")
+                raise TooBigToUnpack("VarLong is too big")
 
         return value
 

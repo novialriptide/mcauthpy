@@ -1,0 +1,2 @@
+class TooBigToUnpack(Exception):
+    pass

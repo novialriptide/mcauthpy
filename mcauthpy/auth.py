@@ -239,6 +239,10 @@ def get_mc_access_token(
     xbl_token = xbox_secret["Token"]
     user_hash = xbox_secret["DisplayClaims"]["xui"][0]["uhs"]
     xbox_secret2 = get_xbox_secret2(xbl_token)
+    
+    if "Token" not in xbox_secret2.keys():
+        raise RuntimeError(f"Internal Microsoft Error (Code: {xbox_secret2['XErr']})")
+
     xsts_token = xbox_secret2["Token"]
     mc_access_token = get_minecraft(user_hash, xsts_token)["access_token"]
     return mc_access_token
