@@ -88,10 +88,12 @@ class Client:
                     compressed_data = packet.unpack_byte_array(compressed_length)
                     uncompressed_data = PacketBuffer(zlib.decompress(compressed_data))
 
-                    print(uncompressed_data.data[:25])
-                    packet_id, packet_id_bytes = uncompressed_data.unpack_varint(provide_bytes=True)
-                    print(packet_id_bytes)
-                    uncompressed_data = uncompressed_data.data
+                    if len(uncompressed_data.data) == data_length:
+                        packet_id, packet_id_bytes = uncompressed_data.unpack_varint(provide_bytes=True)
+                        uncompressed_data = uncompressed_data.data
+
+                    else:
+                        raise RuntimeError("Uncompressed data length reached unexpected length.")
 
                 elif packet_length < self.compression_threshold:
                     packet_id = packet.unpack_varint()
@@ -99,7 +101,7 @@ class Client:
 
                 return packet_id, PacketBuffer(uncompressed_data)
 
-            except (TooBigToUnpack):
+            except TooBigToUnpack:
                 self.buffer.data = self.saved_buffer
                 continue
 
