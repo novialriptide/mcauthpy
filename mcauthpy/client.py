@@ -66,49 +66,46 @@ class Client:
 
     def get_received_buffer(self) -> Tuple[int, PacketBuffer]:
         while True:
-            encrypted_data = self.connection.recv(1024)
-            data = self.cipher.decrypt(encrypted_data)
-            self.buffer.add(data)
+            received_data = self.connection.recv(1024)
+            if self.cipher is not None:
+                received_data = self.cipher.decrypt(received_data)
+            self.buffer.add(received_data)
             self.saved_buffer = copy.copy(self.buffer.data)
 
-            try:
-                packet_length = self.buffer.unpack_varint()
-                packet = PacketBuffer(self.buffer.read(packet_length))
+            packet_length = self.buffer.unpack_varint()
+            packet = PacketBuffer(self.buffer.read(packet_length))
 
-                if packet_length > len(self.buffer.data):
-                    self.buffer.data = self.saved_buffer
-                    continue
-
-                elif packet_length >= self.compression_threshold:
-                    data_length, data_length_bytes = packet.unpack_varint(
-                        provide_bytes=True
-                    )
-
-                    compressed_length = packet_length - len(data_length_bytes)
-                    compressed_data = packet.unpack_byte_array(compressed_length)
-                    uncompressed_data = PacketBuffer(zlib.decompress(compressed_data))
-
-                    if len(uncompressed_data.data) == data_length:
-                        packet_id, packet_id_bytes = uncompressed_data.unpack_varint(provide_bytes=True)
-                        uncompressed_data = uncompressed_data.data
-
-                    else:
-                        raise RuntimeError("Uncompressed data length reached unexpected length.")
-
-                elif packet_length < self.compression_threshold:
-                    packet_id = packet.unpack_varint()
-                    uncompressed_data = packet.unpack_byte_array(packet_length)
-
-                return packet_id, PacketBuffer(uncompressed_data)
-
-            except TooBigToUnpack:
+            if packet_length > len(self.buffer.data):
                 self.buffer.data = self.saved_buffer
                 continue
 
+            elif packet_length >= self.compression_threshold:
+                data_length, data_length_bytes = packet.unpack_varint(
+                    provide_bytes=True
+                )
+
+                compressed_length = packet_length # - len(data_length_bytes)
+                compressed_data = packet.unpack_byte_array(compressed_length)
+                uncompressed_data = PacketBuffer(zlib.decompress(compressed_data))
+
+                if len(uncompressed_data.data) == data_length:
+                    packet_id, packet_id_bytes = uncompressed_data.unpack_varint(provide_bytes=True)
+                    uncompressed_data = uncompressed_data.data
+
+                else:
+                    raise RuntimeError("Uncompressed data length reached unexpected length.")
+
+            elif packet_length < self.compression_threshold:
+                packet_id = packet.unpack_varint()
+                uncompressed_data = packet.unpack_byte_array(packet_length)
+
+            return packet_id, PacketBuffer(uncompressed_data)
+
     def _get_compression_threshold(self) -> None:
-        encrypted_data = self.connection.recv(1024)
-        data = self.cipher.decrypt(encrypted_data)
-        self.buffer.add(data)
+        received_data = self.connection.recv(1024)
+        if self.cipher is not None:
+            received_data = self.cipher.decrypt(received_data)
+        self.buffer.add(received_data)
         packet_length = self.buffer.unpack_varint()
         packet = PacketBuffer(self.buffer.read(packet_length))
 
@@ -116,7 +113,7 @@ class Client:
         if packet_id == 3:
             self.compression_threshold = packet.unpack_varint()
 
-    def login_with_encryption(self) -> None:
+    def _login(self) -> None:
         self.send_packet(
             0x00,
             pack_varint(self.protocol_version),
@@ -127,6 +124,13 @@ class Client:
         )
 
         self.send_packet(0x00, pack_string(self.username), encrypted=False)
+
+    def login_without_encryption(self) -> None:
+        self._login()
+        self._get_compression_threshold()
+
+    def login_with_encryption(self) -> None:
+        self.login()
 
         # Client Authentication
         p = PacketBuffer(self.connection.recv(1024))
