@@ -130,7 +130,7 @@ class Client:
         self._get_compression_threshold()
 
     def login_with_encryption(self) -> None:
-        self.login()
+        self._login()
 
         # Client Authentication
         p = PacketBuffer(self.connection.recv(1024))
