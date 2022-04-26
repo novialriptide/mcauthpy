@@ -1,3 +1,4 @@
+from tkinter import Pack
 from typing import Tuple
 
 import socket
@@ -35,7 +36,7 @@ class Client:
         self.server_ip = None
         self.server_port = None
         self.protocol_version = None
-        self.compression_threshold = None
+        self.compression_threshold = -1
 
         self.email = email
         self.password = password
@@ -73,29 +74,25 @@ class Client:
             self.saved_buffer = copy.copy(self.buffer.data)
 
             packet_length = self.buffer.unpack_varint()
-            packet = PacketBuffer(self.buffer.read(packet_length))
 
             if packet_length > len(self.buffer.data):
                 self.buffer.data = self.saved_buffer
                 continue
 
-            elif packet_length >= self.compression_threshold:
-                data_length, data_length_bytes = packet.unpack_varint(
-                    provide_bytes=True
-                )
+            packet = PacketBuffer(self.buffer.read(packet_length))
 
-                compressed_length = packet_length # - len(data_length_bytes)
-                compressed_data = packet.unpack_byte_array(compressed_length)
-                uncompressed_data = PacketBuffer(zlib.decompress(compressed_data))
+            if self.compression_threshold != -1:
+                data_length = packet.unpack_varint()
 
-                if len(uncompressed_data.data) == data_length:
-                    packet_id, packet_id_bytes = uncompressed_data.unpack_varint(provide_bytes=True)
-                    uncompressed_data = uncompressed_data.data
-
+                if data_length > 0:
+                    uncompressed_data = PacketBuffer(zlib.decompress(packet.data))
                 else:
-                    raise RuntimeError("Uncompressed data length reached unexpected length.")
+                    uncompressed_data = PacketBuffer(packet.data)
 
-            elif packet_length < self.compression_threshold:
+                packet_id = uncompressed_data.unpack_varint()
+                uncompressed_data = uncompressed_data.data
+
+            else:
                 packet_id = packet.unpack_varint()
                 uncompressed_data = packet.unpack_byte_array(packet_length)
 
@@ -105,6 +102,7 @@ class Client:
         received_data = self.connection.recv(1024)
         if self.cipher is not None:
             received_data = self.cipher.decrypt(received_data)
+
         self.buffer.add(received_data)
         packet_length = self.buffer.unpack_varint()
         packet = PacketBuffer(self.buffer.read(packet_length))
