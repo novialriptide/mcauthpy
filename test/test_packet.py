@@ -111,12 +111,6 @@ class PacketBufferTest(unittest.TestCase):
 
         self.assertEqual(pb.data, b"\x11novialIsSuperCool")
 
-    def test_read_packet4(self):
-        pb = mcauthpy.PacketBuffer(b"")
-        pb.add(b"\xb6\x12")
-
-        self.assertEqual(pb.unpack_varint(), b"\x11novialIsSuperCool")
-
     def test_read_entity_position_packet(self):
         pb = mcauthpy.PacketBuffer(b"\x00)\xdd\xa9\x0c\x00\x00\x01\xe6\x03\xde\x00")
         packet_length = len(pb.data)

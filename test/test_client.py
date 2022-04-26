@@ -5,8 +5,6 @@ import hashlib
 
 class DataTypesTest(unittest.TestCase):
     def test_pack_varint(self):
-        c = mcauthpy.Client()
-
         self.assertEqual(mcauthpy.pack_varint(0), b"\x00")
         self.assertEqual(mcauthpy.pack_varint(1), b"\x01")
         self.assertEqual(mcauthpy.pack_varint(2), b"\x02")
@@ -20,8 +18,6 @@ class DataTypesTest(unittest.TestCase):
         self.assertEqual(mcauthpy.pack_varint(-2147483648), b"\x80\x80\x80\x80\x08")
 
     def test_pack_varlong(self):
-        c = mcauthpy.Client()
-
         self.assertEqual(mcauthpy.pack_varlong(0), b"\x00")
         self.assertEqual(mcauthpy.pack_varlong(1), b"\x01")
         self.assertEqual(mcauthpy.pack_varlong(2), b"\x02")
@@ -38,8 +34,6 @@ class DataTypesTest(unittest.TestCase):
         # self.assertEqual(mcauthpy.pack_varlong(-9223372036854775808), b"\x80\x80\x80\x80\x80\x80\x80\x80\x80\x01")
 
     def test_sha1(self):
-        c = mcauthpy.Client()
-
         self.assertEqual(
             mcauthpy.minecraft_sha1_hash(hashlib.sha1(b"Notch")),
             "4ed1f46bbe04bc756bcb17c0c7ce3e4632f06a48",
