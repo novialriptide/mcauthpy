@@ -121,3 +121,6 @@ class PacketBuffer:
 
     def unpack_short(self) -> int:
         return struct.unpack("h", self.read(2))[0]
+
+    def unpack_double(self) -> int:
+        return struct.unpack("d", self.read(8))[0]
