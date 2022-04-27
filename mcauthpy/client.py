@@ -118,7 +118,7 @@ class Client:
             pack_string(self.server_ip),
             pack_unsigned_short(self.server_port),
             pack_varint(2),
-            encrypted=False
+            encrypted=False,
         )
 
         self.send_packet(0x00, pack_string(self.username), encrypted=False)
@@ -170,7 +170,7 @@ class Client:
             encrypted_secret,
             pack_varint(len(encrypted_token)),
             encrypted_token,
-            encrypted=False
+            encrypted=False,
         )
 
         self.cipher = AES.new(
@@ -182,7 +182,9 @@ class Client:
 
         self._get_compression_threshold()
 
-    def send_packet(self, packet_id: int, *fields: Tuple[bytes], encrypted: bool = True) -> bytes:
+    def send_packet(
+        self, packet_id: int, *fields: Tuple[bytes], encrypted: bool = True
+    ) -> bytes:
         """Sends a packet to the connected server.
 
         Parameters:
@@ -199,13 +201,13 @@ class Client:
         data = b""
         for field in fields:
             data += field
-        
+
         if encrypted:
             data = packet_id + data
             out = pack_varint(len(data)) + data
             self.connection.send(out)
             return self.en_cipher.encrypt(out)
-        
+
         elif not encrypted:
             data = packet_id + data
             out = pack_varint(len(data)) + data
