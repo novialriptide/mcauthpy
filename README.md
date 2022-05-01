@@ -42,7 +42,7 @@ client.connect("localhost")
 client.login_with_encryption()
 
 while True:
-    packet_id, buffer = c.get_received_buffer()
+    packet_id, buffer = client.get_received_buffer()
     print(packet_id, buffer.data)
 ```
 
