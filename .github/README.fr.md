@@ -9,16 +9,21 @@
     <img src="https://img.shields.io/tokei/lines/github/novialriptide/mcauthpy" alt="Lines">
 </div>
 
+## Installer
+```
+pip install mcauthpy
+```
+
 ## Construire De Source
 1. Cloner référentiel.
 2. Exécuter `pip install .`
 
-## Norme Usage (Dernier Mettre à Jour: 12/4/2022)
+## Norme Usage (Dernier Mettre à Jour: 5/3/2022)
 Voila un exemple d'envoyer une [Poignée De Main](https://wiki.vg/Protocol#Handshake) paquet.
 ```python
 import mcauthpy
 
-client = mcauthpy.Client()
+client = mcauthpy.Client("email", "password")
 client.connect("localhost")
 client.send_packet( # Envoyer Poignée De Main Paquet
     0x00, # ID De Paquet
@@ -28,6 +33,18 @@ client.send_packet( # Envoyer Poignée De Main Paquet
     mcauthpy.pack_varint(1) # État d'Après (1 pour état)
 )
 ```
+Voici un exemple de recevoir les données depuis serveur connecté.
+```python
+import mcauthpy
+
+client = mcauthpy.Client("email", "password")
+client.connect("localhost")
+client.login()
+
+while True:
+    packet_id, buffer = client.get_received_buffer()
+    print(packet_id, buffer.data)
+```
 
 <div align="center">
     <p>
@@ -35,5 +52,5 @@ client.send_packet( # Envoyer Poignée De Main Paquet
         <a href="https://github.com/novialriptide/mcauthpy/blob/main/.github/README.ko.md">한국말</a>,
         <a href="https://github.com/novialriptide/mcauthpy/blob/main/.github/README.fr.md">Français</a>
     </p>
-    <p>Dernier Mettre à Jour: 4/12/2022, traduit par Novial</p>
+    <p>Dernier Mettre à Jour: 5/3/2022, traduit par Novial</p>
 </div>
