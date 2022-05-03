@@ -18,7 +18,7 @@ pip install mcauthpy
 1. 저장소 복제하다
 2. `pip install .` 수행
 
-## 사용하는 방법 (마지막 업데이트: 2022년 4월 16일)
+## 사용하는 방법 (마지막 업데이트: 2022년 5월 3일)
 [핸드셰이크](https://wiki.vg/Protocol#Handshake) 패킷 전송의 한 종류
 ```python
 import mcauthpy
@@ -39,7 +39,7 @@ import mcauthpy
 
 client = mcauthpy.Client("email", "password")
 client.connect("localhost")
-client.login_with_encryption()
+client.login()
 
 while True:
     packet_id, buffer = client.get_received_buffer()

@@ -18,7 +18,7 @@ pip install mcauthpy
 1. Clone repo
 2. Run `pip install .`
 
-## Standard Usage (Last Updated: 4/16/2022)
+## Standard Usage (Last Updated: 5/3/2022)
 Here's an example of sending a [Handshake](https://wiki.vg/Protocol#Handshake) packet.
 ```python
 import mcauthpy
@@ -39,7 +39,7 @@ import mcauthpy
 
 client = mcauthpy.Client("email", "password")
 client.connect("localhost")
-client.login_with_encryption()
+client.login()
 
 while True:
     packet_id, buffer = client.get_received_buffer()

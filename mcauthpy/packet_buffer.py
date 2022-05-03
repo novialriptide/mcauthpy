@@ -11,7 +11,24 @@ CONTINUE_BIT = 0x80
 class PacketBuffer:
     def __init__(self, data: bytes, compressed: bool = False) -> None:
         self.data = data
+        self._saved_data = None
         self.compressed = compressed
+
+    def purge_save(self) -> bool:
+        """Safely purges the saved cached data.
+        
+        Returns:
+            bool: Returns True if there was a save that was purged, otherwise returns False.
+        
+        """
+        self._saved_data = None
+
+    def save(self) -> None:
+        self._saved_data = self.data
+
+    def revert(self) -> None:
+        self.data = self._saved_data
+        self._saved_data = None
 
     def read(self, length: int) -> bytes:
         out = self.data[:length]

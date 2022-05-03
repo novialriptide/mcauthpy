@@ -43,6 +43,7 @@ class Client:
         self._mctoken = get_mc_access_token(self.email, self.password)
         self._mcprofile = authenticate(self._mctoken)
         self.username = self._mcprofile["name"]
+        self.server_online_mode = True
 
         self.buffer = PacketBuffer(b"")
         self.cipher = None
@@ -123,15 +124,12 @@ class Client:
 
         self.send_packet(0x00, pack_string(self.username), encrypted=False)
 
-    def login_without_encryption(self) -> None:
-        self._login()
-        self._get_compression_threshold()
-
-    def login_with_encryption(self) -> None:
-        self._login()
-
+    def client_auth(self) -> None:
         # Client Authentication
-        p = PacketBuffer(self.connection.recv(1024))
+        received_data = self.connection.recv(1024)
+        self.buffer.add(received_data)
+        self.buffer.save()
+        p = PacketBuffer(received_data)
         server_id = p.read(4)
         public_key_length = p.unpack_varint()
         public_key = p.unpack_byte_array(public_key_length)
@@ -179,7 +177,18 @@ class Client:
         self.en_cipher = AES.new(
             shared_secret, AES.MODE_CFB, segment_size=8, iv=shared_secret
         )
+        
+        self.buffer.purge_save()
 
+    def login(self) -> None:
+        self._login()
+        try:
+            self.client_auth()
+            self.server_online_mode = True
+
+        except TypeError:
+            self.buffer.revert() # Buffer was saved in client_auth()
+            self.server_online_mode = False
         self._get_compression_threshold()
 
     def send_packet(
