@@ -16,10 +16,10 @@ class PacketBuffer:
 
     def purge_save(self) -> bool:
         """Safely purges the saved cached data.
-        
+
         Returns:
             bool: Returns True if there was a save that was purged, otherwise returns False.
-        
+
         """
         self._saved_data = None
 

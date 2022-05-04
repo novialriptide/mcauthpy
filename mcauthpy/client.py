@@ -10,7 +10,7 @@ import zlib
 
 from mcauthpy.exceptions import TooBigToUnpack
 
-from .auth import authenticate, get_mc_access_token
+from ._auth import authenticate, get_mc_access_token
 from .packet_buffer import PacketBuffer
 from .packet_pack import (
     minecraft_sha1_hash,
@@ -177,7 +177,7 @@ class Client:
         self.en_cipher = AES.new(
             shared_secret, AES.MODE_CFB, segment_size=8, iv=shared_secret
         )
-        
+
         self.buffer.purge_save()
 
     def login(self) -> None:
@@ -187,7 +187,7 @@ class Client:
             self.server_online_mode = True
 
         except TypeError:
-            self.buffer.revert() # Buffer was saved in client_auth()
+            self.buffer.revert()  # Buffer was saved in client_auth()
             self.server_online_mode = False
         self._get_compression_threshold()
 
