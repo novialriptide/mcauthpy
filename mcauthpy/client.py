@@ -96,8 +96,7 @@ class Client:
 
             return packet_id, PacketBuffer(uncompressed_data)
 
-    def _get_compression_threshold(self) -> None:
-        received_data = self.connection.recv(1024)
+    def _get_compression_threshold(self, received_data) -> None:
         if self.cipher is not None:
             received_data = self.cipher.decrypt(received_data)
 
@@ -124,8 +123,7 @@ class Client:
     def client_auth(self) -> None:
         # Client Authentication
         received_data = self.connection.recv(1024)
-        self.buffer.add(received_data)
-        self.buffer.save()
+        self.buffer.data = received_data
         p = PacketBuffer(received_data)
         server_id = p.read(4)
         public_key_length = p.unpack_varint()
@@ -175,18 +173,20 @@ class Client:
             shared_secret, AES.MODE_CFB, segment_size=8, iv=shared_secret
         )
 
-        self.buffer.purge_save()
-
     def login(self) -> None:
         self._login()
+
         try:
             self.client_auth()
             self.server_online_mode = True
+            received_data = self.connection.recv(1024)
 
         except TypeError:
-            self.buffer.revert()  # Buffer was saved in client_auth()
             self.server_online_mode = False
-        self._get_compression_threshold()
+            received_data = self.buffer.data
+            print(received_data)
+
+        self._get_compression_threshold(received_data)
 
     def send_packet(
         self, packet_id: int, *fields: Tuple[bytes], encrypted: bool = True

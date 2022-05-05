@@ -1,6 +1,4 @@
-import socket
 import struct
-import io
 
 from mcauthpy.exceptions import TooBigToUnpack
 
@@ -11,8 +9,11 @@ CONTINUE_BIT = 0x80
 class PacketBuffer:
     def __init__(self, data: bytes, compressed: bool = False) -> None:
         self.data = data
-        self._saved_data = None
+        self._saved_data = b""
         self.compressed = compressed
+
+    def purge(self) -> None:
+        self.data = b""
 
     def purge_save(self) -> bool:
         """Safely purges the saved cached data.
@@ -21,14 +22,14 @@ class PacketBuffer:
             bool: Returns True if there was a save that was purged, otherwise returns False.
 
         """
-        self._saved_data = None
+        self._saved_data = b""
 
     def save(self) -> None:
         self._saved_data = self.data
 
     def revert(self) -> None:
         self.data = self._saved_data
-        self._saved_data = None
+        self._saved_data = b""
 
     def read(self, length: int) -> bytes:
         out = self.data[:length]
@@ -141,3 +142,6 @@ class PacketBuffer:
 
     def unpack_double(self) -> int:
         return struct.unpack("d", self.read(8))[0]
+
+    def unpack_long(self) -> int:
+        return struct.unpack("l", self.read(4))
