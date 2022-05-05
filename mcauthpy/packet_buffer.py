@@ -144,4 +144,4 @@ class PacketBuffer:
         return struct.unpack("d", self.read(8))[0]
 
     def unpack_long(self) -> int:
-        return struct.unpack("l", self.read(4))
+        return struct.unpack("q", self.read(8))[0]

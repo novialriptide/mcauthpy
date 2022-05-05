@@ -86,7 +86,7 @@ def pack_string(value: str) -> bytes:
 
 
 def pack_long(value: int) -> bytes:
-    return struct.pack("l", value)
+    return struct.pack("q", value)
 
 
 def minecraft_sha1_hash(sha1_hash):
