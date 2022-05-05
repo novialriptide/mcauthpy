@@ -3,9 +3,8 @@
     <p>Minecraft: Java Edition Protocol API that allows you to send packets to Mojang & Minecraft servers in Python.</p>
     <img src="https://img.shields.io/github/license/novialriptide/mcauthpy" alt="License">
     <img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Code Style">
-    <img src="https://img.shields.io/github/issues/novialriptide/mcauthpy" alt="Issues">
-    <img src="https://img.shields.io/github/issues-pr/novialriptide/mcauthpy" alt="Pull Requests">
-    <img src="https://img.shields.io/github/stars/novialriptide/mcauthpy" alt="Stars">
+    <img src="https://img.shields.io/pypi/v/mcauthpy" alt="PyPi Version">
+    <img src="https://img.shields.io/pypi/dm/mcauthpy" alt="PyPi Downloads">
     <img src="https://img.shields.io/tokei/lines/github/novialriptide/mcauthpy" alt="Lines">
 </div>
 
