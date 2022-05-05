@@ -96,17 +96,12 @@ class Client:
 
             return packet_id, PacketBuffer(uncompressed_data)
 
-    def _get_compression_threshold(self, received_data) -> None:
-        if self.cipher is not None:
-            received_data = self.cipher.decrypt(received_data)
-
-        self.buffer.add(received_data)
-        packet_length = self.buffer.unpack_varint()
-        packet = PacketBuffer(self.buffer.read(packet_length))
-
-        packet_id = packet.unpack_varint()
-        if packet_id == 3:
-            self.compression_threshold = packet.unpack_varint()
+    def _get_compression_threshold(self) -> None:
+        packet_id, buffer = self.get_received_buffer()
+        if packet_id != 3:
+            return
+        
+        self.compression_threshold = buffer.unpack_varint()
 
     def _login(self) -> None:
         self.send_packet(
@@ -123,7 +118,9 @@ class Client:
     def client_auth(self) -> None:
         # Client Authentication
         received_data = self.connection.recv(1024)
+        print(received_data)
         self.buffer.data = received_data
+        
         p = PacketBuffer(received_data)
         server_id = p.read(4)
         public_key_length = p.unpack_varint()
@@ -179,14 +176,11 @@ class Client:
         try:
             self.client_auth()
             self.server_online_mode = True
-            received_data = self.connection.recv(1024)
 
         except TypeError:
             self.server_online_mode = False
-            received_data = self.buffer.data
-            print(received_data)
 
-        self._get_compression_threshold(received_data)
+        self._get_compression_threshold()
 
     def send_packet(
         self, packet_id: int, *fields: Tuple[bytes], encrypted: bool = True
