@@ -1,4 +1,3 @@
-from tkinter import Pack
 from typing import Tuple
 
 import socket
@@ -7,8 +6,6 @@ import hashlib
 import requests
 import copy
 import zlib
-
-from mcauthpy.exceptions import TooBigToUnpack
 
 from ._auth import authenticate, get_mc_access_token
 from .packet_buffer import PacketBuffer
