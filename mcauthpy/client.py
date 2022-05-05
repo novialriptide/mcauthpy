@@ -26,24 +26,60 @@ CONTINUE_BIT = 0x80
 
 
 class Client:
-    def __init__(self, email: str, password: str) -> None:
-        """Initializes the client."""
+    def __init__(self) -> None:
+        """Do not use mcauthpy.Client() directly. Use either
+        >>> mcauthpy.Client.login_from_microsoft()
+        >>> mcauthpy.Client.login_from_username()
+        """
+        self.buffer = PacketBuffer(b"")
+        self.cipher = None
+
         self._timeout = 5
         self.connection = None
         self.server_ip = None
         self.server_port = None
         self.protocol_version = None
         self.compression_threshold = -1
+    
+    @classmethod
+    def login_from_microsoft(cls, email: str, password: str) -> "Client":
+        """Initializes the client. The account must be
+        migrated from Mojang! All packets are encrypted.
 
-        self.email = email
-        self.password = password
-        self._mctoken = get_mc_access_token(self.email, self.password)
-        self._mcprofile = authenticate(self._mctoken)
-        self.username = self._mcprofile["name"]
-        self.server_online_mode = True
+        Parameters:
+            email (str): The Microsoft account's email address.
+            password (str): The Microsoft account's password.
 
-        self.buffer = PacketBuffer(b"")
-        self.cipher = None
+        """
+        instance = cls()
+        
+        instance.email = email
+        instance.password = password
+        mctoken = get_mc_access_token(instance.email, instance.password)
+        mcprofile = authenticate(mctoken)
+
+        instance.username = mcprofile["name"]
+        instance.server_online_mode = True
+
+    @classmethod
+    def login_from_username(cls, username: str) -> "Client":
+        """Initializes the client. All packets are NOT encrypted.
+
+        Servers must have this configuration
+        so you can use this constructor.
+        ```
+        online-mode=false
+        ```
+
+        Parameters:
+            username (str): The Minecraft client's username.
+
+        """
+        instance = cls()
+        instance.username = username
+        instance.server_online_mode = False
+
+        return instance
 
     def connect(
         self, server_ip: str, server_port: int = 25565, protocol_version: int = 758
@@ -72,7 +108,10 @@ class Client:
             self.buffer.add(received_data)
             self.saved_buffer = copy.copy(self.buffer.data)
 
-            packet_length = self.buffer.unpack_varint()
+            try:
+                packet_length = self.buffer.unpack_varint()
+            except TypeError:
+                return None, None
 
             if packet_length > len(self.buffer.data):
                 self.buffer.data = self.saved_buffer
