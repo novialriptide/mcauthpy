@@ -8,6 +8,7 @@ import copy
 import zlib
 
 from ._auth import authenticate, get_mc_access_token
+from .commons import LOGIN_MODE, PLAY_MODE
 from .packet_buffer import PacketBuffer
 from .packet_pack import (
     minecraft_sha1_hash,
@@ -40,7 +41,12 @@ class Client:
         self.server_port = None
         self.protocol_version = None
         self.compression_threshold = -1
-    
+        self.mode = LOGIN_MODE
+
+        self._mctoken = None
+        self._mcprofile = None
+        self.server_online_mode = None
+
     @classmethod
     def login_from_microsoft(cls, email: str, password: str) -> "Client":
         """Initializes the client. The account must be
@@ -52,14 +58,16 @@ class Client:
 
         """
         instance = cls()
-        
+
         instance.email = email
         instance.password = password
-        mctoken = get_mc_access_token(instance.email, instance.password)
-        mcprofile = authenticate(mctoken)
+        instance._mctoken = get_mc_access_token(instance.email, instance.password)
+        instance._mcprofile = authenticate(instance._mctoken)
 
-        instance.username = mcprofile["name"]
+        instance.username = instance._mcprofile["name"]
         instance.server_online_mode = True
+
+        return instance
 
     @classmethod
     def login_from_username(cls, username: str) -> "Client":
@@ -67,9 +75,7 @@ class Client:
 
         Servers must have this configuration
         so you can use this constructor.
-        ```
-        online-mode=false
-        ```
+        >>> online-mode=false
 
         Parameters:
             username (str): The Minecraft client's username.
@@ -108,10 +114,7 @@ class Client:
             self.buffer.add(received_data)
             self.saved_buffer = copy.copy(self.buffer.data)
 
-            try:
-                packet_length = self.buffer.unpack_varint()
-            except TypeError:
-                return None, None
+            packet_length = self.buffer.unpack_varint()
 
             if packet_length > len(self.buffer.data):
                 self.buffer.data = self.saved_buffer
@@ -156,10 +159,9 @@ class Client:
             pack_string(self.server_ip),
             pack_unsigned_short(self.server_port),
             pack_varint(2),
-            encrypted=False,
         )
 
-        self.send_packet(0x00, pack_string(self.username), encrypted=False)
+        self.send_packet(0x00, pack_string(self.username))
 
     def client_auth(self, received_data) -> None:
         # Client Authentication
@@ -202,7 +204,6 @@ class Client:
             encrypted_secret,
             pack_varint(len(encrypted_token)),
             encrypted_token,
-            encrypted=False,
         )
 
         self.cipher = AES.new(
@@ -216,22 +217,21 @@ class Client:
         self._login()
         received_data = self.connection.recv(1024)
 
-        try:
+        if self._mctoken is not None:
             self.client_auth(received_data)
-        except TypeError:
+        else:
             self.buffer.add(received_data)
 
         self._get_compression_threshold(received_data)
 
-    def send_packet(
-        self, packet_id: int, *fields: Tuple[bytes], encrypted: bool = True
-    ) -> bytes:
+        self.mode = PLAY_MODE
+
+    def send_packet(self, packet_id: int, *fields: Tuple[bytes]) -> bytes:
         """Sends a packet to the connected server.
 
         Parameters:
-            packet_id (int): The packet's id in hexadecimal format.
+            packet_id (int): The packet's id in hexadecimal format (preferably).
             *fields (Tuple[bytes]): The packed data to send to the server.
-            encrypted (bool): If the packet should be sent encrypted or not.
 
         Returns:
             bytes: The packet that is sent to the server.
@@ -243,17 +243,24 @@ class Client:
         for field in fields:
             data += field
 
-        if encrypted:
-            data = packet_id + data
+        data = packet_id + data
+        if self.mode == LOGIN_MODE:
             out = pack_varint(len(data)) + data
-            self.connection.send(out)
-            return self.en_cipher.encrypt(out)
 
-        elif not encrypted:
-            data = packet_id + data
+        elif self.mode == PLAY_MODE:
+            if len(data) >= self.compression_threshold:
+                data = pack_varint(len(data)) + zlib.compress(data)
+
+            elif len(data) < self.compression_threshold:
+                data = pack_varint(0) + data
+
             out = pack_varint(len(data)) + data
-            self.connection.send(out)
-            return out
+
+            if self.server_online_mode:
+                out = self.en_cipher.encrypt(out)
+
+        self.connection.send(out)
+        return out
 
     def unpack_packet(
         self, force_size: int or None = None, compressed: bool = False
