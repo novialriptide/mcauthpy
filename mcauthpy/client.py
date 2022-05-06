@@ -244,20 +244,21 @@ class Client:
             data += field
 
         data = packet_id + data
-        if self.mode == LOGIN_MODE:
+        if self.compression_threshold <= 0:
             out = pack_varint(len(data)) + data
 
-        elif self.mode == PLAY_MODE:
+        elif self.compression_threshold > 0:
             if len(data) >= self.compression_threshold:
-                data = pack_varint(len(data)) + zlib.compress(data)
+                data = zlib.compress(data)
+                data_length = pack_varint(len(data))
 
             elif len(data) < self.compression_threshold:
-                data = pack_varint(0) + data
+                data_length = pack_varint(0)
 
-            out = pack_varint(len(data)) + data
+            out = pack_varint(len(data_length + data)) + data_length + data
 
-            if self.server_online_mode:
-                out = self.en_cipher.encrypt(out)
+        if self.server_online_mode and self.mode == PLAY_MODE:
+            out = self.en_cipher.encrypt(out)
 
         self.connection.send(out)
         return out
