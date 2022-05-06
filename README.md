@@ -1,11 +1,11 @@
 <div align="center">
     <h1>mcauthpy</h1>
     <p>Minecraft: Java Edition Protocol API that allows you to send packets to Mojang & Minecraft servers in Python.</p>
-    <img src="https://img.shields.io/github/license/novialriptide/mcauthpy" alt="License">
-    <img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Code Style">
-    <img src="https://img.shields.io/pypi/v/mcauthpy" alt="PyPi Version">
-    <img src="https://img.shields.io/pypi/dm/mcauthpy" alt="PyPi Downloads">
-    <img src="https://img.shields.io/tokei/lines/github/novialriptide/mcauthpy" alt="Lines">
+    <img src="https://img.shields.io/github/license/novialriptide/mcauthpy?style=for-the-badge" alt="License">
+    <img src="https://img.shields.io/badge/code%20style-black-000000.svg?style=for-the-badge" alt="Code Style">
+    <img src="https://img.shields.io/pypi/v/mcauthpy?style=for-the-badge" alt="PyPi Version">
+    <img src="https://img.shields.io/pypi/dm/mcauthpy?style=for-the-badge" alt="PyPi Downloads">
+    <img src="https://img.shields.io/tokei/lines/github/novialriptide/mcauthpy?style=for-the-badge" alt="Lines">
 </div>
 
 ## Installation
