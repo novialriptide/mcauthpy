@@ -237,25 +237,23 @@ class Client:
             bytes: The packet that is sent to the server.
 
         """
-        packet_id = pack_varint(packet_id)
-
-        data = b""
+        packet_id = pack_varint(int(packet_id))
+        data = packet_id
         for field in fields:
             data += field
 
-        data = packet_id + data
-        if self.compression_threshold <= 0:
-            out = pack_varint(len(data)) + data
-
-        elif self.compression_threshold > 0:
+        if self.compression_threshold >= 0:
             if len(data) >= self.compression_threshold:
-                data = zlib.compress(data)
                 data_length = pack_varint(len(data))
+                data = zlib.compress(data)
 
             elif len(data) < self.compression_threshold:
                 data_length = pack_varint(0)
 
             out = pack_varint(len(data_length + data)) + data_length + data
+
+        elif self.compression_threshold < 0:
+            out = pack_varint(len(data)) + data
 
         if self.server_online_mode and self.mode == PLAY_MODE:
             out = self.en_cipher.encrypt(out)
