@@ -36,7 +36,7 @@ class Client:
         self.cipher = None
 
         self._timeout = 5
-        self.socket = None
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_ip = None
         self.server_port = None
         self.protocol_version = None
@@ -101,7 +101,6 @@ class Client:
         self.server_ip = server_ip
         self.server_port = server_port
         self.protocol_version = protocol_version
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # self.socket.settimeout(self._timeout)
         self.socket.connect((self.server_ip, self.server_port))
 
