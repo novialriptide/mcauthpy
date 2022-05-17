@@ -36,7 +36,7 @@ class Client:
         self.cipher = None
 
         self._timeout = 5
-        self.connection = None
+        self.socket = None
         self.server_ip = None
         self.server_port = None
         self.protocol_version = None
@@ -101,13 +101,13 @@ class Client:
         self.server_ip = server_ip
         self.server_port = server_port
         self.protocol_version = protocol_version
-        self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.connection.settimeout(self._timeout)
-        self.connection.connect((self.server_ip, self.server_port))
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # self.socket.settimeout(self._timeout)
+        self.socket.connect((self.server_ip, self.server_port))
 
     def get_received_buffer(self) -> Tuple[int, PacketBuffer]:
         while True:
-            received_data = self.connection.recv(1024)
+            received_data = self.socket.recv(1024)
             if self.cipher is not None:
                 received_data = self.cipher.decrypt(received_data)
 
@@ -140,7 +140,7 @@ class Client:
             return packet_id, PacketBuffer(uncompressed_data)
 
     def _get_compression_threshold(self, received_data) -> None:
-        received_data = self.connection.recv(1024)
+        received_data = self.socket.recv(1024)
         if self.cipher is not None:
             received_data = self.cipher.decrypt(received_data)
 
@@ -215,7 +215,7 @@ class Client:
 
     def login(self) -> None:
         self._login()
-        received_data = self.connection.recv(1024)
+        received_data = self.socket.recv(1024)
 
         if self._mctoken is not None:
             self.client_auth(received_data)
@@ -258,7 +258,7 @@ class Client:
         if self.server_online_mode and self.mode == PLAY_MODE:
             out = self.en_cipher.encrypt(out)
 
-        self.connection.send(out)
+        self.socket.send(out)
         return out
 
     def unpack_packet(
@@ -275,7 +275,7 @@ class Client:
         if force_size is not None:
             packet_length = force_size
 
-        return PacketBuffer(self.connection.recv(packet_length), compressed=compressed)
+        return PacketBuffer(self.socket.recv(packet_length), compressed=compressed)
 
     def raw_read(self, bytes_size: int = 1024) -> bytes:
         """Reads data sent from the server.
@@ -284,4 +284,4 @@ class Client:
             bytes: The raw data.
 
         """
-        return self.connection.recv(bytes_size)
+        return self.socket.recv(bytes_size)
